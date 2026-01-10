@@ -1,0 +1,102 @@
+@startuml
+
+' --- 1. INFRAESTRUCTURA ---
+class Ciudad {
+  - codigo : String
+  - nombre : String
+}
+
+class Ruta {
+  - duracionPromedio : int
+}
+Ruta --> "1" Ciudad : origen
+Ruta --> "1" Ciudad : destino
+
+class Avion {
+  - modelo : String
+  - filas : int
+  - columnas : int
+}
+
+class Asiento {
+  - codigo : String
+  - fila : int
+  - letra : char
+  - costoExtra : double
+  - disponible : boolean
+}
+Avion "1" *-- "*" Asiento
+
+class Vuelo {
+  - codigo : String
+  - fecha : LocalDate
+  - horaSalida : LocalTime
+  - precioBase : double
+}
+Vuelo --> "1" Ruta
+Vuelo --> "1" Avion
+
+' --- 2. INTERFACES Y ESTRATEGIAS (SOLID: OCP) ---
+
+' FASE 3 DEL FLUJO
+interface TipoVuelo {
+  + getNombre() : String
+  + getMultiplicador() : double
+}
+class Economy implements TipoVuelo
+class Premium implements TipoVuelo
+class Business implements TipoVuelo
+
+' FASE 4 DEL FLUJO
+interface TipoPasajero {
+  + getNombre() : String
+  + getDescuento() : double
+}
+class Adulto implements TipoPasajero
+class Nino implements TipoPasajero
+class Bebe implements TipoPasajero
+class AdultoMayor implements TipoPasajero
+
+' FASE 6 DEL FLUJO
+abstract class PlanAdicional {
+  # nombre : String
+  # costo : double
+  + calcularCostoTotal(int numPasajeros) : double
+}
+class PlanBasico extends PlanAdicional
+class EquipajeAdicional extends PlanAdicional
+class PrioridadEmbarque extends PlanAdicional
+
+' --- 3. LÓGICA DE RESERVA ---
+
+class Pasajero {
+  - nombre : String
+}
+Pasajero --> "1" TipoPasajero
+
+class DetalleReserva {
+  - esAsientoSeleccionado : boolean
+  - costoAsientoAplicado : double
+}
+' FASE 5: Relación clave (Pasajero ocupa Asiento en un Vuelo)
+DetalleReserva --> "1" Pasajero
+DetalleReserva --> "1" Asiento
+DetalleReserva --> "1" Vuelo
+
+class Reserva {
+  - codigoReserva : String
+  - fechaCompra : LocalDateTime
+  - costoFinal : double
+}
+
+enum TipoViaje {
+  SOLO_IDA
+  IDA_Y_VUELTA
+}
+
+Reserva --> "1" TipoViaje
+Reserva --> "1" TipoVuelo
+Reserva "1" *-- "*" DetalleReserva
+Reserva o-- "*" PlanAdicional
+
+@enduml
