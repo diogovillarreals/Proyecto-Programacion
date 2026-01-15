@@ -4,10 +4,21 @@
  */
 package vuelosfis.modelo;
 
+import vuelosfis.interfaces.TipoVuelo;
+
 /**
  *
  * @author Diogo
  */
-public class Premium {
+public class Premium implements TipoVuelo{
     
+    @Override 
+    public String getNombre(){
+        return "Premium";
+    }
+    
+    @Override
+    public double getMultiplicadorPrecio(){
+        return 1.30;
+    }
 }

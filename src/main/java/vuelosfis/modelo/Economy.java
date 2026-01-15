@@ -4,10 +4,21 @@
  */
 package vuelosfis.modelo;
 
+import vuelosfis.interfaces.TipoVuelo;
+
 /**
  *
  * @author Diogo
  */
-public class Economy {
+public class Economy implements TipoVuelo {
     
+    @Override
+    public String getNombre() {
+        return "Economy";
+    }
+    
+    @Override
+    public double getMultiplicadorPrecio(){
+        return 1.0;
+    }
 }

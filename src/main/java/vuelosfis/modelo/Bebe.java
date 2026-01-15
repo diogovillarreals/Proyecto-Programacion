@@ -4,10 +4,20 @@
  */
 package vuelosfis.modelo;
 
+import vuelosfis.interfaces.TipoPasajero;
+
 /**
  *
  * @author Diogo
  */
-public class Bebe {
+public class Bebe implements TipoPasajero{
+    @Override 
+    public String getDescripcion(){
+        return "Infante/Bebe Menor 2 años)" ;
+    }
     
+    @Override
+    public double getDescuento(){
+        return 0.90; // Solo paga tasas (90% de descuento)
+    }
 }

@@ -1,13 +1,17 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
+
 package vuelosfis.modelo;
 
-/**
- *
- * @author Diogo
- */
-public class AdultoMayor {
+import vuelosfis.interfaces.TipoPasajero;
+
+
+public class AdultoMayor implements TipoPasajero{
+    @Override
+    public String getDescripcion(){
+        return "Tercera Edad";
+    }
     
+    @Override
+    public double getDescuento() {
+        return 0.50; // 50% de descuento (Por ley)
+    }
 }
