@@ -1,13 +1,9 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Interface.java to edit this template
- */
+
 package vuelosfis.interfaces;
 
-/**
- *
- * @author Diogo
- */
 public interface TipoVuelo {
-    
+   // Devuelve el nombre de la categoría (ej: "Economy")
+    String getNombre();
+   // Devuelve por cuánto se multiplica el precio base
+    double getMultiplicadorPrecio();
 }

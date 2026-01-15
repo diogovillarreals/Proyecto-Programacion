@@ -1,13 +1,10 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Interface.java to edit this template
- */
+
 package vuelosfis.interfaces;
 
-/**
- *
- * @author Diogo
- */
 public interface TipoPasajero {
+    // Devuelve el tipo de pasajero (ej: "Adulto", "Niño")
+    String getDescripcion();
     
+    // Devuelve el porcentaje de descuento (0.0 a 1.0)
+    double getDescuento();
 }

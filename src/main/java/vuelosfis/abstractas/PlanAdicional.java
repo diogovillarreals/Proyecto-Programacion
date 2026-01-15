@@ -1,13 +1,23 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
+
 package vuelosfis.abstractas;
 
-/**
- *
- * @author Diogo
- */
-public class PlanAdicional {
-    
+
+public abstract class PlanAdicional {
+   protected String nombrePlan;
+   protected double costoAdicional;
+
+    public PlanAdicional(String nombrePlan, double costoAdicional) {
+        this.nombrePlan = nombrePlan;
+        this.costoAdicional = costoAdicional;
+    }
+
+    public String getNombrePlan() {
+        return nombrePlan;
+    }
+
+    public double getCostoAdicional() {
+        return costoAdicional;
+    }
+   
+   public abstract double calcularTotal(int numeroPasajeros);
 }
