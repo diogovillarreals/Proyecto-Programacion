@@ -1,13 +1,17 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
+
 package vuelosfis.modelo;
 
-/**
- *
- * @author Diogo
- */
-public class EquipajeAdicional {
+import vuelosfis.abstractas.PlanAdicional;
+
+
+public class EquipajeAdicional extends PlanAdicional{
     
+    public EquipajeAdicional() {
+        super("Maleta Extra (23kg)", 40.00); // $40 por maleta
+    }
+    
+    @Override
+    public double calcularTotal(int numeroPasajeros) {
+        return costoAdicional * numeroPasajeros; // $40 * 3 personas = $120
+    }
 }

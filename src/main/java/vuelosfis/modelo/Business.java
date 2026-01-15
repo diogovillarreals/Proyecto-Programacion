@@ -1,13 +1,18 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
+
 package vuelosfis.modelo;
 
-/**
- *
- * @author Diogo
- */
-public class Business {
+import vuelosfis.interfaces.TipoVuelo;
+
+
+public class Business implements TipoVuelo{
     
+    @Override
+   public String getNombre(){
+       return "Business";
+   }
+   
+   @Override
+   public double getMultiplicadorPrecio(){
+       return 2.0;
+   }
 }

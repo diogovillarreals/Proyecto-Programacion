@@ -4,10 +4,20 @@
  */
 package vuelosfis.modelo;
 
+import vuelosfis.interfaces.TipoPasajero;
+
 /**
  *
  * @author Diogo
  */
-public class Adulto {
-    
+public class Adulto implements TipoPasajero{
+    @Override
+    public String getDescripcion() {
+        return "Adulto";
+    }
+
+    @Override
+    public double getDescuento() {
+        return 0.0; // Paga el 100% (Sin descuento)
+    }
 }
