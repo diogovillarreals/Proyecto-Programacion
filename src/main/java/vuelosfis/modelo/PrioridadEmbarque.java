@@ -1,13 +1,16 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
+
 package vuelosfis.modelo;
 
-/**
- *
- * @author Diogo
- */
-public class PrioridadEmbarque {
-    
+import vuelosfis.abstractas.PlanAdicional;
+
+
+public class PrioridadEmbarque extends PlanAdicional{
+    public PrioridadEmbarque() {
+        super("Prioridad de Embarque", 15.00); // $15 por persona
+    }
+
+    @Override
+    public double calcularTotal(int numeroPasajeros) {
+        return costoAdicional * numeroPasajeros;
+    }
 }
