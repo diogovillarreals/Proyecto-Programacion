@@ -3,7 +3,7 @@ package vuelosfis.main;
 public class Main {
 
     public static void main(String[] args) {
-        System.out.println("Iniciando sistema VuelosFIS...");
+        System.out.println("Iniciando sistema VuelosFIS..");
         
         // FASE 6: Aquí cargaremos los archivos
         // GestorArchivos.cargarDatos();

@@ -122,6 +122,6 @@ public class Pruebas {
         System.out.println("Guardando reserva de $" + reservaFinal.calcularTotalReserva() + "...");
         GestorArchivos.guardarReserva(reservaFinal);
         
-        System.out.println("\n¡PRUEBAS COMPLETAS FINALIZADAS CON ÉXITO!");
+        System.out.println("\n¡PRUEBAS COMPLETAS FINALIZADAS CON EXITO!");
     }
 }

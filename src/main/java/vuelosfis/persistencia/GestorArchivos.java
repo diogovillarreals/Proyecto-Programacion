@@ -73,7 +73,7 @@ public class GestorArchivos {
         } catch (IOException e) {
             System.err.println("Error al leer el archivo de vuelos: " + e.getMessage());
         } catch (NumberFormatException | java.time.format.DateTimeParseException e) {
-            System.err.println("Error de formato en el archivo (revisa fechas o números): " + e.getMessage());
+            System.err.println("Error del formato en el archivo (revisa fechas o números): " + e.getMessage());
         }
 
         return listaVuelos;
