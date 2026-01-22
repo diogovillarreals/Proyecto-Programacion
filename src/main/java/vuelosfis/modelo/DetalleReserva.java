@@ -71,11 +71,21 @@ public class DetalleReserva {
 
     @Override
     public String toString() {
+        String infoAsiento;
+        if (asiento != null) {
+            // Si tiene asiento (Adulto/Niño) mostramos si fue Auto o Elegido
+            String tipoSeleccion = esSeleccionManual ? " [Elegido]" : " [Auto]";
+            infoAsiento = "Asiento " + asiento.getCodigo() + tipoSeleccion;
+        } else {
+            // Si es NULL (Bebé) mostramos el texto especial
+            infoAsiento = "EN REGAZO (Sin Asiento)";
+        }
+        
         return String.format("Ticket para %s en %s (%s) - Asiento %s: $%.2f",
                 pasajero.getNombre(),
                 vuelo.getRuta().toString(),
                 tipoVuelo.getNombre(),
-                (asiento != null ? asiento.getCodigo() : "Sin Asignar"),
+                infoAsiento, // Aquí se imprime "Asiento 1A" o "EN REGAZO"
                 calcularSubtotal());
     }
     
