@@ -125,4 +125,20 @@ public class GestorArchivos {
             System.err.println("Error al guardar la reserva: " + e.getMessage());
         }
     }
-}
+    public static ArrayList<String> leerHistorialReservas() {
+        ArrayList<String> lineas = new ArrayList<>();
+        java.io.File archivo = new java.io.File(RUTA_RESERVAS); // Asegúrate que esta constante exista
+
+        if (!archivo.exists()) return lineas;
+
+        try (BufferedReader br = new BufferedReader(new FileReader(archivo))) {
+            String linea;
+            while ((linea = br.readLine()) != null) {
+                lineas.add(linea);
+            }
+        } catch (IOException e) {
+            System.err.println("Error leyendo historial: " + e.getMessage());
+        }
+        return lineas;
+    }
+    }
