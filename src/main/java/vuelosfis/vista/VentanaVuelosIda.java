@@ -2,27 +2,40 @@ package vuelosfis.vista;
 
 import javax.swing.table.DefaultTableModel;
 
-public class VentanaResultados extends javax.swing.JFrame {
+public class VentanaVuelosIda extends javax.swing.JFrame {
 
     // Variables privadas
     private String origen;
     private String destino;
     private String fechaIda;
+    private String fechaVuelta; 
     private int pasajeros;
+    private boolean esIdaYVuelta;
+    private String cabina;
+    private String infoIdaPrev;
+    private double precioIdaPrev = 0.0;
+    private String infoVueltaActual; // Solo se usa si estamos en el paso final
 
-    public VentanaResultados() {
+    public VentanaVuelosIda() {
         initComponents();
         this.setLocationRelativeTo(null);
+        
+        // 1. Obtenemos el "modelo de selección" de la tabla
+        javax.swing.ListSelectionModel selector = tblVuelos.getSelectionModel();
     }
 
     /**
      * INYECCIÓN DE DATOS
      */
-    public void recibirDatos(String origen, String destino, String fechaIda, int pasajeros) {
+    public void recibirDatos(String origen, String destino, String fechaIda, String fechaVuelta, 
+            int pasajeros, boolean esRedondo, String cabina) {
         this.origen = origen;
         this.destino = destino;
         this.fechaIda = fechaIda;
+        this.fechaVuelta = fechaVuelta; // Guardamos la fecha de vuelta
         this.pasajeros = pasajeros;
+        this.esIdaYVuelta = esRedondo;  // Guardamos si es viaje redondo
+        this.cabina = cabina;
         
         // Ejecutamos nuestra lógica visual
         actualizarTitulo();
@@ -46,7 +59,7 @@ public class VentanaResultados extends javax.swing.JFrame {
     private void cargarTablaEstiloLATAM() {
         // A. Definimos las columnas
         String[] columnas = {
-            "Salida", "Llegada", "Duración", "Tipo", "Economy", "Business"
+            "Salida", "Llegada", "Duración", "Tipo", "Precio"
         };
 
         // B. Modelo de datos (Bloqueamos edición para que no escriban en la tabla)
@@ -56,16 +69,23 @@ public class VentanaResultados extends javax.swing.JFrame {
                 return false;
             }
         };
-
-        // C. Datos Falsos (MOCK DATA)
-        modelo.addRow(new Object[]{ "06:15", "07:08", "53 min", "Directo", "$ 56.00", "$ 120.00" });
-        modelo.addRow(new Object[]{ "09:30", "10:25", "55 min", "Directo", "$ 75.50", "$ 140.00" });
-        modelo.addRow(new Object[]{ "18:45", "19:40", "55 min", "Directo", "$ 90.00", "$ 160.00" });
-
+        
         // D. Asignar el modelo a TU tabla
         tblVuelos.setModel(modelo);
+        
+        // Esto bloquea que se pueda cambiar el tamaño de las columnas
+        tblVuelos.getTableHeader().setResizingAllowed(false);
+        
+        // Opcional: Esto bloquea que las muevan de lugar
+        tblVuelos.getTableHeader().setReorderingAllowed(false);
     }
-
+    
+    public void setDatosPrevios(String infoIda, double precioIda, String infoVuelta) {
+        this.infoIdaPrev = infoIda;
+        this.precioIdaPrev = precioIda;
+        this.infoVueltaActual = infoVuelta;
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -87,24 +107,37 @@ public class VentanaResultados extends javax.swing.JFrame {
         jPanel1.setBackground(new java.awt.Color(255, 255, 255));
 
         lblTitulo.setFont(new java.awt.Font("Lucida Bright", 0, 24)); // NOI18N
-        lblTitulo.setText("Resultados de tu búsqueda");
+        lblTitulo.setText("Vuelos encontrados:");
 
         tblVuelos.setFont(new java.awt.Font("Lucida Bright", 0, 12)); // NOI18N
         tblVuelos.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null}
             },
             new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
+                "Salida", "Llegada", "Duración", "Tipo", "Precio"
             }
-        ));
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, true
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
         jScrollPane1.setViewportView(tblVuelos);
 
         btnSeleccionar.setFont(new java.awt.Font("Lucida Bright", 0, 18)); // NOI18N
         btnSeleccionar.setText("Continuar");
+        btnSeleccionar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSeleccionarActionPerformed(evt);
+            }
+        });
 
         btnAtras.setFont(new java.awt.Font("Lucida Bright", 0, 18)); // NOI18N
         btnAtras.setText("Atrás");
@@ -127,9 +160,7 @@ public class VentanaResultados extends javax.swing.JFrame {
                         .addComponent(btnAtras)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(btnSeleccionar))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(lblTitulo)
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                    .addComponent(lblTitulo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -138,12 +169,12 @@ public class VentanaResultados extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(lblTitulo)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 377, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 379, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnSeleccionar)
                     .addComponent(btnAtras))
-                .addContainerGap(15, Short.MAX_VALUE))
+                .addContainerGap(18, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -178,6 +209,25 @@ public class VentanaResultados extends javax.swing.JFrame {
     this.dispose();
     }//GEN-LAST:event_btnAtrasActionPerformed
 
+    private void btnSeleccionarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSeleccionarActionPerformed
+    // 1. Verificar selección
+        int fila = tblVuelos.getSelectedRow();
+        if (fila == -1) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Por favor, selecciona un vuelo para continuar.");
+            return;
+        }
+
+        String precio = tblVuelos.getValueAt(fila, 4).toString();
+
+        this.setVisible(false);
+        VentanaSeleccionTarifa vTarifas = new VentanaSeleccionTarifa();
+
+        // AQUÍ ESTABA EL ERROR: AHORA PASAMOS 'this.cabina' AL FINAL
+        vTarifas.inicializar(origen, destino, fechaIda, precio, pasajeros, esIdaYVuelta, true, fechaVuelta, this.cabina); // <--- CORREGIDO
+
+        vTarifas.setVisible(true);
+    }//GEN-LAST:event_btnSeleccionarActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -200,7 +250,7 @@ public class VentanaResultados extends javax.swing.JFrame {
         //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(() -> new VentanaResultados().setVisible(true));
+        java.awt.EventQueue.invokeLater(() -> new VentanaVuelosIda().setVisible(true));
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
