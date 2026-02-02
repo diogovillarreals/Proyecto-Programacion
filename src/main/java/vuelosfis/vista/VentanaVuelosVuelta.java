@@ -11,6 +11,8 @@ package vuelosfis.vista;
 public class VentanaVuelosVuelta extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(VentanaVuelosVuelta.class.getName());
+    private java.util.ArrayList<vuelosfis.modelo.Vuelo> listaResultadosVuelta;
+    private vuelosfis.controlador.ControladorVuelo controlador;
     
     // Variables de Datos
     private String origen;
@@ -28,9 +30,9 @@ public class VentanaVuelosVuelta extends javax.swing.JFrame {
     }
     
 // --- MÉTODO PARA RECIBIR DATOS ---
-    public void recibirDatos(String origen, String destino, String fechaVuelta, int pasajeros,
+    public void recibirDatos(vuelosfis.controlador.ControladorVuelo ctrl,String origen, String destino, String fechaVuelta, int pasajeros,
                              String infoIda, double precioIda, String cabina) {
-        
+        this.controlador = ctrl;
         this.origen = origen;
         this.destino = destino;
         this.fechaVuelta = fechaVuelta;
@@ -42,11 +44,47 @@ public class VentanaVuelosVuelta extends javax.swing.JFrame {
         // Actualizamos los textos
         lblTitulo.setText("Vuelos de regreso: " + origen + " - " + destino);
         this.setTitle("Regreso - " + fechaVuelta);
-
-        // Configuramos la tabla vacía
-        configurarTablaSinDatos();
+        
+        try {
+        // 1. Le decimos a Java: "Oye, la fecha viene como dia/mes/año"
+        java.time.format.DateTimeFormatter formatoEntrada = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        
+        // 2. La convertimos correctamente
+        java.time.LocalDate fechaConvertida = java.time.LocalDate.parse(fechaVuelta, formatoEntrada);
+        
+        // 3. Ahora sí buscamos sin errores
+        this.listaResultadosVuelta = this.controlador.getControladorReserva().buscarVuelos(origen, destino, fechaConvertida);
+        
+    } catch (Exception e) {
+        // Plan B: Si falla (por si acaso viniera al revés), intentamos el formato estándar
+        try {
+            this.listaResultadosVuelta = this.controlador.getControladorReserva().buscarVuelos(origen, destino, java.time.LocalDate.parse(fechaVuelta));
+        } catch (Exception e2) {
+            System.out.println("Error grave con la fecha de vuelta: " + fechaVuelta);
+        }
     }
-
+        configurarTablaConDatos(this.listaResultadosVuelta);
+    }
+    
+    private void configurarTablaConDatos(java.util.ArrayList<vuelosfis.modelo.Vuelo> lista) {
+        String[] columnas = {"Salida", "Llegada", "Duración", "Tipo", "Precio"};
+        javax.swing.table.DefaultTableModel modelo = new javax.swing.table.DefaultTableModel(columnas, 0) {
+            public boolean isCellEditable(int row, int column) { return false; }
+        };
+        
+        for (vuelosfis.modelo.Vuelo v : lista) {
+            Object[] fila = {
+                v.getHora(),
+                v.getHora().plusMinutes(v.getRuta().getDuracion()), // Calculamos llegada aprox
+                v.getRuta().getDuracion() + " min",
+                v.getAvion().getModelo(),
+                v.getPrecioBase()
+            };
+            modelo.addRow(fila);
+        }
+        tblVuelos.setModel(modelo);
+    }
+    
     // --- CONFIGURACIÓN DE TABLA ---
     private void configurarTablaSinDatos() {
     String[] columnas = {
@@ -161,22 +199,35 @@ public class VentanaVuelosVuelta extends javax.swing.JFrame {
 
     private void btnFinalizarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnFinalizarActionPerformed
         int fila = tblVuelos.getSelectedRow();
-        if (fila == -1) return;
+        if (fila == -1) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Selecciona un vuelo.");
+            return;
+        }
 
-        // Datos del regreso
-        String precioStr = tblVuelos.getValueAt(fila, 4).toString();
-        String horaSalida = tblVuelos.getValueAt(fila, 0).toString();
-        String infoVuelta = "Regreso: " + origen + " - " + destino + " (" + fechaVuelta + " a las " + horaSalida + ")";
+        // 1. Recuperamos el Vuelo
+        vuelosfis.modelo.Vuelo vueloRetorno = this.listaResultadosVuelta.get(fila);
+        String infoVuelta = "Regreso: " + vueloRetorno.getCodigo() + " (" + vueloRetorno.getHora() + ")";
 
         this.setVisible(false);
         VentanaSeleccionTarifa vTarifas = new VentanaSeleccionTarifa();
 
-        // Inicializamos la ventana de tarifas (ES_IDA = false porque ya es lo último)
-        vTarifas.inicializar(origen, destino, fechaVuelta, precioStr, pasajeros, true, false, null, cabinaIdaGuardada);
+        // 2. Pasamos los datos (CON LA CORRECCIÓN DE FECHA)
+        vTarifas.inicializar(
+                this.controlador,   // Cerebro
+                vueloRetorno,       // Vuelo Objeto
+                origen, 
+                destino, 
+                fechaVuelta, 
+                
+                String.valueOf(vueloRetorno.getPrecioBase()), 
+                pasajeros, 
+                true,  // esRedondo
+                false, // esIda
+                null, 
+                cabinaIdaGuardada
+        );
         
-        //Datos de la Ida
         vTarifas.setDatosPrevios(infoIdaGuardada, precioIdaGuardado, infoVuelta);
-        
         vTarifas.setVisible(true);
     }//GEN-LAST:event_btnFinalizarActionPerformed
 

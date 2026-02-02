@@ -2,7 +2,11 @@ package vuelosfis.vista;
 
 import javax.swing.table.DefaultTableModel;
 
+
 public class VentanaVuelosIda extends javax.swing.JFrame {
+    
+    private vuelosfis.controlador.ControladorVuelo controlador;
+    private java.util.ArrayList<vuelosfis.modelo.Vuelo> listaVuelosEncontrados;
 
     // Variables privadas
     private String origen;
@@ -57,33 +61,71 @@ public class VentanaVuelosIda extends javax.swing.JFrame {
      * Método 2: Crea la tabla bonita y la llena de datos falsos
      */
     private void cargarTablaEstiloLATAM() {
-        // A. Definimos las columnas
+        // 1. Definimos las columnas
         String[] columnas = {
-            "Salida", "Llegada", "Duración", "Tipo", "Precio"
+            "Vuelo",    // Col 0
+            "Salida",   // Col 1
+            "Duración", // Col 2
+            "Precio",   // Col 3
+            "Avión"     // Col 4
         };
 
-        // B. Modelo de datos (Bloqueamos edición para que no escriban en la tabla)
-        DefaultTableModel modelo = new DefaultTableModel(columnas, 0) {
+        // 2. Modelo de datos
+        javax.swing.table.DefaultTableModel modelo = new javax.swing.table.DefaultTableModel(columnas, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
             }
         };
         
-        // D. Asignar el modelo a TU tabla
+        try {
+            // A. Convertimos la fecha
+            java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            java.time.LocalDate fechaBuscada = java.time.LocalDate.parse(this.fechaIda, fmt);
+
+            // B. Buscamos en el cerebro
+            this.listaVuelosEncontrados = this.controlador.getControladorReserva().buscarVuelos(origen, destino, fechaBuscada); 
+            java.util.ArrayList<vuelosfis.modelo.Vuelo> resultados = this.listaVuelosEncontrados;
+            
+            if (resultados.isEmpty()) {
+                javax.swing.JOptionPane.showMessageDialog(this, "No hay vuelos para esta fecha.");
+            }
+
+            // C. Llenamos la tabla (ALINEADO PERFECTAMENTE)
+            for (vuelosfis.modelo.Vuelo v : resultados) {
+                Object[] fila = {
+                    v.getCodigo(),                      // Vuelo (Col 0)
+                    v.getHora().toString(),             // Salida (Col 1)
+                    v.getRuta().getDuracion() + " min", // Duración (Col 2)
+                    "$" + v.getPrecioBase(),            // Precio (Col 3)
+                    "Airbus A320"                       // Avión (Col 4)
+                };
+                modelo.addRow(fila);
+            }
+
+        } catch (Exception e) {
+            System.out.println("Error al cargar vuelos en tabla: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        // 3. Asignar el modelo a la tabla visual
         tblVuelos.setModel(modelo);
-        
-        // Esto bloquea que se pueda cambiar el tamaño de las columnas
         tblVuelos.getTableHeader().setResizingAllowed(false);
-        
-        // Opcional: Esto bloquea que las muevan de lugar
         tblVuelos.getTableHeader().setReorderingAllowed(false);
+        
+        // Ajuste estético de anchos
+        tblVuelos.getColumnModel().getColumn(0).setPreferredWidth(70);
+        tblVuelos.getColumnModel().getColumn(2).setPreferredWidth(70);
     }
     
     public void setDatosPrevios(String infoIda, double precioIda, String infoVuelta) {
         this.infoIdaPrev = infoIda;
         this.precioIdaPrev = precioIda;
         this.infoVueltaActual = infoVuelta;
+    }
+    
+    public void setControlador(vuelosfis.controlador.ControladorVuelo controladorRecibido) {
+        this.controlador = controladorRecibido;
     }
     
     /**
@@ -210,21 +252,25 @@ public class VentanaVuelosIda extends javax.swing.JFrame {
     }//GEN-LAST:event_btnAtrasActionPerformed
 
     private void btnSeleccionarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSeleccionarActionPerformed
-    // 1. Verificar selección
         int fila = tblVuelos.getSelectedRow();
         if (fila == -1) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Por favor, selecciona un vuelo para continuar.");
+            javax.swing.JOptionPane.showMessageDialog(this, "Selecciona un vuelo.");
             return;
         }
 
-        String precio = tblVuelos.getValueAt(fila, 4).toString();
-
-        this.setVisible(false);
+               
+        String precioTexto = tblVuelos.getValueAt(fila, 3).toString(); // Columna 3 = Precio
+        String precioLimpio = precioTexto.replace("$", "").trim(); // Quitamos el $
+        
+        // Pasamos los datos a la siguiente ventana
+        this.setVisible(false);       
+        vuelosfis.modelo.Vuelo vueloElegido = this.listaVuelosEncontrados.get(fila);
+        
         VentanaSeleccionTarifa vTarifas = new VentanaSeleccionTarifa();
-
-        // AQUÍ ESTABA EL ERROR: AHORA PASAMOS 'this.cabina' AL FINAL
-        vTarifas.inicializar(origen, destino, fechaIda, precio, pasajeros, esIdaYVuelta, true, fechaVuelta, this.cabina); // <--- CORREGIDO
-
+        
+        // Pasamos 'precioLimpio' en vez de precioTexto
+        vTarifas.inicializar(this.controlador,vueloElegido,origen, destino, fechaIda, precioLimpio, pasajeros, esIdaYVuelta, true, fechaVuelta, this.cabina);
+        
         vTarifas.setVisible(true);
     }//GEN-LAST:event_btnSeleccionarActionPerformed
 

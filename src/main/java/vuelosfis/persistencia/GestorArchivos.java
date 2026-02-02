@@ -19,64 +19,68 @@ public class GestorArchivos {
      * Lee el archivo de texto y devuelve una lista de objetos Vuelo.
      * @return ArrayList de Vuelos cargados desde el disco.
      */
-    public static ArrayList<Vuelo> cargarVuelos() {
-        ArrayList<Vuelo> listaVuelos = new ArrayList<>();
+    public static java.util.ArrayList<vuelosfis.modelo.Vuelo> cargarVuelos() {
+        java.util.ArrayList<vuelosfis.modelo.Vuelo> lista = new java.util.ArrayList<>();
+        java.io.File archivo = new java.io.File("vuelos.txt");
 
-        // Usamos "try-with-resources" (el paréntesis después del try).
-        // Esto cierra el archivo automáticamente aunque haya error. ¡Es muy seguro!
-        try (BufferedReader br = new BufferedReader(new FileReader(RUTA_VUELOS))) {
-            
+        if (!archivo.exists()) {
+            System.out.println("⚠️ ALERTA: No existe vuelos.txt. Ejecuta GeneradorVuelos.");
+            return lista;
+        }
+
+        try (java.io.BufferedReader br = new java.io.BufferedReader(new java.io.FileReader(archivo))) {
             String linea;
+            int numeroLinea = 0;
+            
             while ((linea = br.readLine()) != null) {
-                // Si la línea está vacía o es un comentario, la saltamos
-                if (linea.trim().isEmpty() || linea.startsWith("#")) {
+                numeroLinea++;
+                if (linea.trim().isEmpty()) continue;
+
+                String[] datos = linea.split(",");
+                
+                // Si la línea no tiene 8 datos, la saltamos para evitar errores
+                if (datos.length < 8) {
+                    System.out.println("⚠️ Saltando línea " + numeroLinea + " (Datos incompletos): " + linea);
                     continue; 
                 }
 
-                // 1. SEPARAR LOS DATOS (Split)
-                // Formato esperado: Codigo,Origen,Destino,Duracion,Fecha,Hora,Precio,Modelo
-                String[] datos = linea.split(",");
+                try {
+                    // --- ZONA DE PELIGRO (Aquí es donde daba el error) ---
+                    // El error "AirbusA320" pasaba porque se leía el índice incorrecto.
+                    // Aseguramos leer los índices exactos del Generador:
+                    
+                    // Indice 3 = Duración (Número)
+                    int duracion = Integer.parseInt(datos[3].trim()); 
+                    
+                    // Indice 6 = Precio (Número con decimales)
+                    // (Si tu código viejo leía datos[7] aquí, explotaba)
+                    double precio = Double.parseDouble(datos[6].trim()); 
 
-                // Validación básica: Si no tiene 8 campos, la línea está rota
-                if (datos.length < 8) {
-                    System.out.println("Línea inválida (faltan datos): " + linea);
-                    continue;
+                    // --- FIN ZONA DE PELIGRO ---
+
+                    // Leemos el resto
+                    String codigo = datos[0].trim();
+                    String codOrigen = datos[1].trim();
+                    String codDestino = datos[2].trim();
+                    java.time.LocalDate fecha = java.time.LocalDate.parse(datos[4].trim());
+                    java.time.LocalTime hora = java.time.LocalTime.parse(datos[5].trim());
+                    
+                    // Reconstruimos
+                    vuelosfis.modelo.Ciudad orig = new vuelosfis.modelo.Ciudad(codOrigen, codOrigen);
+                    vuelosfis.modelo.Ciudad dest = new vuelosfis.modelo.Ciudad(codDestino, codDestino);
+                    vuelosfis.modelo.Ruta ruta = new vuelosfis.modelo.Ruta(orig, dest, duracion);
+                    
+                    lista.add(new vuelosfis.modelo.Vuelo(codigo, ruta, fecha, hora, precio));
+
+                } catch (NumberFormatException e) {
+                    System.out.println("❌ ERROR MATEMÁTICO en línea " + numeroLinea + ": " + linea);
+                    System.out.println("   -> Intentó convertir texto a número y falló: " + e.getMessage());
                 }
-
-                // 2. EXTRAER Y CONVERTIR (Parsing)
-                // Convertimos de String a lo que necesitemos (int, double, fechas)
-                String codigo = datos[0].trim();
-                String codOrigen = datos[1].trim();
-                String codDestino = datos[2].trim();
-                int duracion = Integer.parseInt(datos[3].trim());
-                LocalDate fecha = LocalDate.parse(datos[4].trim());
-                LocalTime hora = LocalTime.parse(datos[5].trim());
-                double precio = Double.parseDouble(datos[6].trim());
-                // El modelo del avión (datos[7]) lo usa el constructor de Vuelo internamente
-                
-                // 3. RECONSTRUIR OBJETOS
-                // Como no guardamos los nombres completos de ciudades, ponemos el código como nombre temporal
-                Ciudad origen = new Ciudad(codOrigen, codOrigen); 
-                Ciudad destino = new Ciudad(codDestino, codDestino);
-                
-                Ruta ruta = new Ruta(origen, destino, duracion);
-                
-                // 4. CREAR EL VUELO
-                Vuelo nuevoVuelo = new Vuelo(codigo, ruta, fecha, hora, precio);
-                
-                // 5. AGREGAR A LA LISTA
-                listaVuelos.add(nuevoVuelo);
             }
-            
-            System.out.println("Se cargaron " + listaVuelos.size() + " vuelos correctamente desde el archivo.");
-
-        } catch (IOException e) {
-            System.err.println("Error al leer el archivo de vuelos: " + e.getMessage());
-        } catch (NumberFormatException | java.time.format.DateTimeParseException e) {
-            System.err.println("Error del formato en el archivo (revisa fechas o números): " + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-        return listaVuelos;
+        return lista;
     }
     
     // Ruta para el archivo de reservas (se creará solo si no existe)

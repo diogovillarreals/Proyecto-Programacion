@@ -35,5 +35,9 @@ public class Ruta {
     public String toString() {
         return origen.getCodigo() + "-" + destino.getCodigo();
     }
-        
-}
+      
+   public int getDuracion() {
+        return duracionMinutos;
+    }
+    
+  }

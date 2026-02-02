@@ -1,17 +1,11 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
- */
 package vuelosfis.vista;
 
-/**
- *
- * @author Diogo
- */
+import vuelosfis.controlador.ControladorVuelo;
+
 public class VentanaPrincipal extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(VentanaPrincipal.class.getName());
-
+    private ControladorVuelo controlador;
     /**
      * Creates new form VentanaPrincipal
      */
@@ -62,8 +56,53 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     spNinos.setModel(new javax.swing.SpinnerNumberModel(0, 0, 10, 1));
     spBebes.setModel(new javax.swing.SpinnerNumberModel(0, 0, 10, 1));
     spMayores.setModel(new javax.swing.SpinnerNumberModel(0, 0, 10, 1));
-}
+    ((javax.swing.JSpinner.DefaultEditor) spAdultos.getEditor()).getTextField().setEditable(false);
+    }
+    
+    public void setControlador(ControladorVuelo controladorRecibido) {
+        this.controlador = controladorRecibido;
+        cargarCiudadesDisponibles();
+    }
+    
+    public ControladorVuelo getControlador() {
+        return this.controlador;
+    }
+    
+    private void cargarCiudadesDisponibles() {
+        // Limpiamos los combos para no duplicar si llamamos esto dos veces
+        cbOrigen.removeAllItems();
+        cbDestino.removeAllItems();
 
+        // Verificamos que el controlador exista (Seguridad)
+        if (this.controlador == null) return;
+
+        // Obtenemos la lista de vuelos del backend
+        java.util.ArrayList<vuelosfis.modelo.Vuelo> vuelos = 
+                this.controlador.getControladorReserva().getCatalogoVuelos();
+
+        // Usamos HashSet para evitar ciudades repetidas (Ej: que no salga 5 veces "Quito")
+        java.util.HashSet<String> ciudadesOrigen = new java.util.HashSet<>();
+        java.util.HashSet<String> ciudadesDestino = new java.util.HashSet<>();
+
+        for (vuelosfis.modelo.Vuelo v : vuelos) {
+            // Extraemos nombres de ciudades
+            ciudadesOrigen.add(v.getRuta().getOrigen().getNombre());
+            ciudadesDestino.add(v.getRuta().getDestino().getNombre());
+        }
+
+        // Llenamos los ComboBox
+        for (String ciudad : ciudadesOrigen) {
+            cbOrigen.addItem(ciudad);
+        }
+        
+        for (String ciudad : ciudadesDestino) {
+            cbDestino.addItem(ciudad);
+        }
+        
+        System.out.println("✅ Ciudades cargadas dinámicamente desde los vuelos.");
+    }
+    
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -87,11 +126,11 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         jLabel5 = new javax.swing.JLabel();
         cbCabina = new javax.swing.JComboBox<>();
         jPanelFechas = new javax.swing.JPanel();
-        jLabel6 = new javax.swing.JLabel();
         separadorFechas = new javax.swing.JSeparator();
-        lblTituloVuelta = new javax.swing.JLabel();
         dpIda = new com.github.lgooddatepicker.components.DatePicker();
         dpVuelta = new com.github.lgooddatepicker.components.DatePicker();
+        lblTituloVuelta = new javax.swing.JLabel();
+        lblIda = new javax.swing.JLabel();
         jLabel8 = new javax.swing.JLabel();
         spAdultos = new javax.swing.JSpinner();
         spNinos = new javax.swing.JSpinner();
@@ -110,23 +149,23 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         jPanelPrincipal.setBackground(new java.awt.Color(255, 255, 255));
         jPanelPrincipal.setPreferredSize(new java.awt.Dimension(640, 480));
 
-        jLabel1.setFont(new java.awt.Font("Lucida Bright", 0, 24)); // NOI18N
         jLabel1.setText("Bienvenidos a VuelosFIS");
+        jLabel1.setFont(new java.awt.Font("Lucida Bright", 0, 24)); // NOI18N
 
-        jLabel2.setFont(new java.awt.Font("Lucida Bright", 0, 18)); // NOI18N
         jLabel2.setText("Origen:");
+        jLabel2.setFont(new java.awt.Font("Lucida Bright", 0, 18)); // NOI18N
 
         cbOrigen.addActionListener(this::cbOrigenActionPerformed);
 
-        jLabel3.setFont(new java.awt.Font("Lucida Bright", 0, 22)); // NOI18N
         jLabel3.setText("¿A dónde quieres volar?");
+        jLabel3.setFont(new java.awt.Font("Lucida Bright", 0, 22)); // NOI18N
 
-        jLabel4.setFont(new java.awt.Font("Lucida Bright", 0, 18)); // NOI18N
         jLabel4.setText("Destino:");
+        jLabel4.setFont(new java.awt.Font("Lucida Bright", 0, 18)); // NOI18N
         jLabel4.setPreferredSize(new java.awt.Dimension(52, 17));
 
-        btnBuscar.setFont(new java.awt.Font("Lucida Bright", 0, 18)); // NOI18N
         btnBuscar.setText("Buscar Vuelos");
+        btnBuscar.setFont(new java.awt.Font("Lucida Bright", 0, 18)); // NOI18N
         btnBuscar.addActionListener(this::btnBuscarActionPerformed);
 
         buttonGroup1.add(rbIdaVuelta);
@@ -140,58 +179,49 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         rbSoloIda.setText("Solo ida");
         rbSoloIda.addActionListener(this::rbSoloIdaActionPerformed);
 
-        jLabel5.setFont(new java.awt.Font("Lucida Bright", 0, 18)); // NOI18N
         jLabel5.setText("Cabina:");
+        jLabel5.setFont(new java.awt.Font("Lucida Bright", 0, 18)); // NOI18N
 
         jPanelFechas.setBackground(new java.awt.Color(255, 255, 255));
         jPanelFechas.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(204, 204, 204)));
         jPanelFechas.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
 
-        jLabel6.setBackground(new java.awt.Color(204, 204, 204));
-        jLabel6.setFont(new java.awt.Font("Lucida Bright", 0, 12)); // NOI18N
-        jLabel6.setForeground(new java.awt.Color(153, 153, 153));
-        jLabel6.setText("Ida (DD-MM-AA)");
+        lblTituloVuelta.setText("Fecha de Vuelta");
 
-        lblTituloVuelta.setBackground(new java.awt.Color(204, 204, 204));
-        lblTituloVuelta.setFont(new java.awt.Font("Lucida Bright", 0, 12)); // NOI18N
-        lblTituloVuelta.setForeground(new java.awt.Color(153, 153, 153));
-        lblTituloVuelta.setText("Vuelta (DD-MM-AA)");
+        lblIda.setText("Fecha de Ida");
 
         javax.swing.GroupLayout jPanelFechasLayout = new javax.swing.GroupLayout(jPanelFechas);
         jPanelFechas.setLayout(jPanelFechasLayout);
         jPanelFechasLayout.setHorizontalGroup(
             jPanelFechasLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanelFechasLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanelFechasLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(jPanelFechasLayout.createSequentialGroup()
-                        .addGroup(jPanelFechasLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(dpIda, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(dpVuelta, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(lblTituloVuelta))
-                        .addGap(0, 0, Short.MAX_VALUE)))
-                .addGap(4, 4, 4))
             .addComponent(separadorFechas)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelFechasLayout.createSequentialGroup()
+                .addContainerGap(20, Short.MAX_VALUE)
+                .addGroup(jPanelFechasLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(lblIda)
+                    .addComponent(lblTituloVuelta, javax.swing.GroupLayout.PREFERRED_SIZE, 145, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(jPanelFechasLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(dpIda, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(dpVuelta, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(15, 15, 15))
         );
         jPanelFechasLayout.setVerticalGroup(
             jPanelFechasLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanelFechasLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jLabel6)
+                .addComponent(lblIda)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(dpIda, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(15, 15, 15)
+                .addGap(18, 18, 18)
                 .addComponent(separadorFechas, javax.swing.GroupLayout.PREFERRED_SIZE, 3, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(lblTituloVuelta)
-                .addGap(9, 9, 9)
+                .addComponent(lblTituloVuelta, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(dpVuelta, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(16, 16, 16))
         );
 
-        jLabel8.setFont(new java.awt.Font("Lucida Bright", 0, 18)); // NOI18N
         jLabel8.setText("Pasajeros:");
+        jLabel8.setFont(new java.awt.Font("Lucida Bright", 0, 18)); // NOI18N
 
         spAdultos.setModel(new javax.swing.SpinnerNumberModel(0, 0, 10, 1));
 
@@ -199,24 +229,24 @@ public class VentanaPrincipal extends javax.swing.JFrame {
 
         spBebes.setModel(new javax.swing.SpinnerNumberModel(0, 0, 10, 1));
 
-        jLabel9.setFont(new java.awt.Font("Lucida Bright", 0, 12)); // NOI18N
         jLabel9.setText("Adultos (De 12 a 64 años)");
+        jLabel9.setFont(new java.awt.Font("Lucida Bright", 0, 12)); // NOI18N
 
-        jLabel10.setFont(new java.awt.Font("Lucida Bright", 0, 12)); // NOI18N
         jLabel10.setText("Niños (De 2 a 11 años)");
+        jLabel10.setFont(new java.awt.Font("Lucida Bright", 0, 12)); // NOI18N
 
-        jLabel11.setFont(new java.awt.Font("Lucida Bright", 0, 12)); // NOI18N
         jLabel11.setText("Bebés (Menores de 2 años)");
+        jLabel11.setFont(new java.awt.Font("Lucida Bright", 0, 12)); // NOI18N
 
-        jLabel12.setFont(new java.awt.Font("Lucida Bright", 0, 18)); // NOI18N
         jLabel12.setText("Fechas:");
+        jLabel12.setFont(new java.awt.Font("Lucida Bright", 0, 18)); // NOI18N
 
         jLabel13.setFont(new java.awt.Font("Lucida Bright", 0, 12)); // NOI18N
 
         spMayores.setModel(new javax.swing.SpinnerNumberModel(0, 0, 10, 1));
 
-        jLabel14.setFont(new java.awt.Font("Lucida Bright", 0, 12)); // NOI18N
         jLabel14.setText("Adulto mayor (65 años en adelante)");
+        jLabel14.setFont(new java.awt.Font("Lucida Bright", 0, 12)); // NOI18N
         jLabel14.setToolTipText("");
 
         javax.swing.GroupLayout jPanelPrincipalLayout = new javax.swing.GroupLayout(jPanelPrincipal);
@@ -224,63 +254,59 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         jPanelPrincipalLayout.setHorizontalGroup(
             jPanelPrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanelPrincipalLayout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGroup(jPanelPrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                .addGap(164, 164, 164)
+                .addComponent(jLabel1)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(jPanelPrincipalLayout.createSequentialGroup()
+                .addGroup(jPanelPrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanelPrincipalLayout.createSequentialGroup()
-                        .addComponent(jLabel11, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGap(146, 146, 146))
-                    .addGroup(jPanelPrincipalLayout.createSequentialGroup()
-                        .addGroup(jPanelPrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(jPanelPrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addGroup(jPanelPrincipalLayout.createSequentialGroup()
-                                .addComponent(jLabel9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addGap(96, 96, 96))
+                                .addComponent(jLabel11, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addGap(146, 146, 146))
                             .addGroup(jPanelPrincipalLayout.createSequentialGroup()
-                                .addComponent(jLabel10, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addGap(50, 50, 50)))
-                        .addGroup(jPanelPrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(spNinos, javax.swing.GroupLayout.PREFERRED_SIZE, 74, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(spAdultos, javax.swing.GroupLayout.PREFERRED_SIZE, 74, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(22, 22, 22))
+                                .addGroup(jPanelPrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(jPanelPrincipalLayout.createSequentialGroup()
+                                        .addComponent(jLabel9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addGap(96, 96, 96))
+                                    .addGroup(jPanelPrincipalLayout.createSequentialGroup()
+                                        .addComponent(jLabel10, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addGap(50, 50, 50)))
+                                .addGroup(jPanelPrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(spNinos, javax.swing.GroupLayout.PREFERRED_SIZE, 74, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(spAdultos, javax.swing.GroupLayout.PREFERRED_SIZE, 74, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGap(22, 22, 22))
+                            .addGroup(jPanelPrincipalLayout.createSequentialGroup()
+                                .addGap(0, 0, Short.MAX_VALUE)
+                                .addComponent(jLabel14)
+                                .addGap(38, 38, 38)
+                                .addGroup(jPanelPrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                    .addComponent(spBebes, javax.swing.GroupLayout.DEFAULT_SIZE, 74, Short.MAX_VALUE)
+                                    .addComponent(spMayores))
+                                .addGap(22, 22, 22))))
                     .addGroup(jPanelPrincipalLayout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(jLabel14)
-                        .addGap(38, 38, 38)
-                        .addGroup(jPanelPrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                            .addComponent(spBebes, javax.swing.GroupLayout.DEFAULT_SIZE, 74, Short.MAX_VALUE)
-                            .addComponent(spMayores))
-                        .addGap(22, 22, 22)))
+                        .addGap(12, 12, 12)
+                        .addGroup(jPanelPrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(cbCabina, 0, 282, Short.MAX_VALUE)
+                            .addGroup(jPanelPrincipalLayout.createSequentialGroup()
+                                .addGroup(jPanelPrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                    .addComponent(jLabel5, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(jLabel2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(cbOrigen, javax.swing.GroupLayout.PREFERRED_SIZE, 173, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 96, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(jPanelPrincipalLayout.createSequentialGroup()
+                                .addComponent(jLabel13, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addGap(70, 70, 70))))
+                    .addGroup(jPanelPrincipalLayout.createSequentialGroup()
+                        .addGap(20, 20, 20)
+                        .addComponent(jLabel3)))
                 .addGroup(jPanelPrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanelPrincipalLayout.createSequentialGroup()
                         .addGap(63, 63, 63)
                         .addComponent(btnBuscar))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanelPrincipalLayout.createSequentialGroup()
-                        .addGap(37, 37, 37)
-                        .addComponent(jPanelFechas, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(633, 633, 633))
-            .addGroup(jPanelPrincipalLayout.createSequentialGroup()
-                .addGroup(jPanelPrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanelPrincipalLayout.createSequentialGroup()
-                        .addGap(164, 164, 164)
-                        .addComponent(jLabel1))
-                    .addGroup(jPanelPrincipalLayout.createSequentialGroup()
-                        .addGroup(jPanelPrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanelPrincipalLayout.createSequentialGroup()
-                                .addGap(12, 12, 12)
-                                .addGroup(jPanelPrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(cbCabina, 0, 282, Short.MAX_VALUE)
-                                    .addGroup(jPanelPrincipalLayout.createSequentialGroup()
-                                        .addGroup(jPanelPrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                            .addComponent(jLabel5, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                            .addComponent(jLabel2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                        .addComponent(cbOrigen, javax.swing.GroupLayout.PREFERRED_SIZE, 173, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 96, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addGroup(jPanelPrincipalLayout.createSequentialGroup()
-                                        .addComponent(jLabel13, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                        .addGap(70, 70, 70))))
-                            .addGroup(jPanelPrincipalLayout.createSequentialGroup()
-                                .addGap(20, 20, 20)
-                                .addComponent(jLabel3)))
                         .addGap(45, 45, 45)
                         .addGroup(jPanelPrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanelPrincipalLayout.createSequentialGroup()
@@ -291,8 +317,9 @@ public class VentanaPrincipal extends javax.swing.JFrame {
                                 .addComponent(rbIdaVuelta)
                                 .addGap(18, 18, 18)
                                 .addComponent(rbSoloIda, javax.swing.GroupLayout.PREFERRED_SIZE, 98, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, 614, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addComponent(jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, 614, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jPanelFechas, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addGap(229, 229, 229))
         );
         jPanelPrincipalLayout.setVerticalGroup(
             jPanelPrincipalLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -340,7 +367,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
                     .addComponent(btnBuscar, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addComponent(jLabel13)
-                .addContainerGap(57, Short.MAX_VALUE))
+                .addContainerGap(47, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -403,6 +430,8 @@ public class VentanaPrincipal extends javax.swing.JFrame {
 
         // 3. Preparar datos para la siguiente ventana
         java.time.format.DateTimeFormatter formato = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        VentanaVuelosIda ventana2 = new VentanaVuelosIda();
+        ventana2.setControlador(this.controlador);
 
         // Convertimos Ida
         String fechaIdaTexto = fechaIdaObj.format(formato);
@@ -443,9 +472,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
 
         // 5. Abrir ventana de ida
         this.setVisible(false);
-
-        VentanaVuelosIda ventana2 = new VentanaVuelosIda();
-        
+     
         // Variable para saber si es redondo
         boolean esRedondo = rbIdaVuelta.isSelected();
         
@@ -525,11 +552,11 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanelFechas;
     private javax.swing.JPanel jPanelPrincipal;
+    private javax.swing.JLabel lblIda;
     private javax.swing.JLabel lblTituloVuelta;
     private javax.swing.JRadioButton rbIdaVuelta;
     private javax.swing.JRadioButton rbSoloIda;

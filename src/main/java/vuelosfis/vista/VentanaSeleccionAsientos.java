@@ -14,6 +14,9 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingConstants;
 
 public class VentanaSeleccionAsientos extends javax.swing.JFrame {
+    
+    private vuelosfis.controlador.ControladorVuelo controlador; 
+    private vuelosfis.modelo.Vuelo vueloActual;
 
     // --- VARIABLES DE DATOS ---
     private boolean esViajeRedondo, esTramoIda;
@@ -34,11 +37,15 @@ public class VentanaSeleccionAsientos extends javax.swing.JFrame {
     }
 
     // --- CARGAR DATOS ---
-    public void cargarDatos(String origen, String destino, int pasajeros, String cabina,
+    public void cargarDatos(vuelosfis.controlador.ControladorVuelo ctrl, 
+                            vuelosfis.modelo.Vuelo vuelo, // <--- NUEVO
+                            String origen, String destino, int pasajeros, String cabina,
                             boolean esRedondo, boolean esIda, String fechaVuelta,
                             double precioUnitarioActual, 
                             String infoIdaPrev, double precioIdaPrevTotal, String infoVueltaActual) {
         
+        this.controlador = ctrl;
+        this.vueloActual = vuelo;
         this.origen = origen;
         this.destino = destino;
         this.pasajerosTotal = pasajeros;
@@ -107,6 +114,23 @@ public class VentanaSeleccionAsientos extends javax.swing.JFrame {
     private void dibujarAsientosEnPanel() {
         pnlAsientos.removeAll(); 
         
+        if (this.controlador != null) {
+            this.controlador.getControladorReserva().cargarDatosIniciales();
+        }
+        
+        if (this.controlador != null) {
+            // Verificar si el historial está vacío. Si sí, ¡OBLIGAMOS A LEER EL ARCHIVO!
+            // (Nota: Esto asume que tienes un método para checar si está vacío o simplemente recargamos)
+            
+            System.out.println("🔍 Verificando memoria de reservas para el vuelo: " + this.vueloActual.getCodigo());
+            
+            // Forzamos la carga de datos del archivo 'reservas.csv' en este instante
+            // Esto arregla el problema de que la Ida llegue vacía.
+            this.controlador.getControladorReserva().cargarDatosIniciales(); 
+        } else {
+             System.out.println("❌ ERROR CRÍTICO: El controlador es NULL en Asientos.");
+        }
+        
         // Forzar cuadrícula de 5 columnas
         pnlAsientos.setLayout(new java.awt.GridLayout(0, 5, 10, 10)); 
         
@@ -153,7 +177,23 @@ public class VentanaSeleccionAsientos extends javax.swing.JFrame {
                 
                 btn.setBackground(colorBtn);
                 
-                // --- 2. LÓGICA DE BLOQUEO (Tu requerimiento principal) ---
+                boolean estaOcupado = false;
+                if (this.controlador != null) {
+                    // Nota: Asegúrate de tener este método o similar en tu controlador.
+                    // Si no lo tienes, usa el truco de abajo (*)
+                     estaOcupado = this.controlador.getControladorReserva().verificarAsientoOcupado(
+                            this.vueloActual.getCodigo(), 
+                            numeroAsiento
+                     );
+                }
+
+                if (estaOcupado) {
+                    btn.setEnabled(false);
+                    btn.setBackground(Color.DARK_GRAY); // Gris oscuro
+                    btn.setText("X"); // Marcar con X
+                }
+
+// --- 2. LÓGICA DE BLOQUEO (Tu requerimiento principal) ---
                 boolean permitido = false;
                 String miCabina = (cabinaPermitida != null) ? cabinaPermitida.toUpperCase() : "ECONOMY";
 
@@ -459,30 +499,105 @@ public class VentanaSeleccionAsientos extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnConfirmarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnConfirmarActionPerformed
-        String listaAsientos = String.join(",", misAsientos);
-        double totalEsteTramo = (precioBaseUnitario * pasajerosTotal) + costoAsientosTotal;
+       // 1. VALIDACIÓN BÁSICA
+        if (misAsientos.size() < pasajerosTotal) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Faltan asientos por seleccionar.");
+            return;
+        }
 
+        // 2. PREPARAR DATOS DEL TRAMO ACTUAL
+        double totalEsteTramo = (precioBaseUnitario * pasajerosTotal) + costoAsientosTotal;
+        String infoEsteTramo = "Vuelo " + vueloActual.getCodigo() + " (" + origen + "-" + destino + ") Asientos: " + misAsientos;
+
+        // =====================================================================
+        // CAMINO A: IDA Y VUELTA (ESTAMOS EN LA IDA) -> IR A LA VUELTA
+        // =====================================================================
         if (esViajeRedondo && esTramoIda) {
             this.setVisible(false);
-            VentanaVuelosVuelta vVuelta = new VentanaVuelosVuelta();
+            vuelosfis.vista.VentanaVuelosVuelta vVuelta = new vuelosfis.vista.VentanaVuelosVuelta();
             
-            String infoIdaFinal = infoIdaPrev + " | Asientos: " + listaAsientos;
-            
-            vVuelta.recibirDatos(destino, origen, fechaVueltaGuardada, pasajerosTotal, 
-                                 infoIdaFinal, totalEsteTramo, cabinaPermitida);
+            // Pasamos la estafeta
+            vVuelta.recibirDatos(
+                this.controlador,       
+                this.destino, this.origen, this.fechaVueltaGuardada, this.pasajerosTotal,
+                infoEsteTramo, totalEsteTramo, this.cabinaPermitida
+            );
             vVuelta.setVisible(true);
-
-        } else {
+        } 
+        
+        // =====================================================================
+        // CAMINO B: FIN DEL VIAJE (SOLO IDA O ESTAMOS EN LA VUELTA) -> GUARDAR
+        // =====================================================================
+        else {
             this.setVisible(false);
-            VentanaResumen vResumen = new VentanaResumen();
-            
-            if (esViajeRedondo) {
-                String infoVueltaFinal = infoVueltaActual + " | Asientos: " + listaAsientos;
-                vResumen.mostrarResumen(infoIdaPrev, precioIdaPrevTotal, infoVueltaFinal, totalEsteTramo);
-            } else {
-                String infoIdaFinal = infoIdaPrev + " | Asientos: " + listaAsientos;
-                vResumen.mostrarResumen(infoIdaFinal, totalEsteTramo, "", 0.0);
+
+            // 1. CREAMOS LA RESERVA FINAL
+            vuelosfis.enums.TipoViaje tipo = esViajeRedondo ? vuelosfis.enums.TipoViaje.IDA_Y_VUELTA : vuelosfis.enums.TipoViaje.SOLO_IDA;
+            vuelosfis.modelo.Reserva reservaFinal = new vuelosfis.modelo.Reserva("RES-" + System.currentTimeMillis(), tipo);
+            vuelosfis.modelo.Pasajero paxDummy = new vuelosfis.modelo.Pasajero("Cliente", "999", "x", new vuelosfis.modelo.Adulto());
+
+            // 2. AGREGAMOS LOS ASIENTOS DE *ESTE* VUELO (LO QUE ACABAS DE ELEGIR)
+            for (String asientoCod : misAsientos) {
+                 vuelosfis.modelo.Asiento aObj = new vuelosfis.modelo.Asiento(asientoCod, 1, cabinaPermitida, precioBaseUnitario);
+                 vuelosfis.modelo.DetalleReserva det = new vuelosfis.modelo.DetalleReserva(vueloActual, paxDummy, aObj, new vuelosfis.modelo.Economy(), true);
+                 reservaFinal.agregarDetalle(det);
             }
+
+            // 3. --- EL TRUCO MAESTRO: RECUPERAR LA IDA PERDIDA ---
+            // Si es viaje redondo y estamos en la vuelta, hay que rescatar los datos de la Ida
+            double granTotal = totalEsteTramo;
+            String textoFinal = infoEsteTramo;
+
+            if (esViajeRedondo && !esTramoIda) {
+                granTotal += precioIdaPrevTotal;
+                textoFinal = infoIdaPrev + "\n" + infoEsteTramo;
+                
+                try {
+                    // ¡AQUÍ ESTÁ LA MAGIA! 
+                    // Analizamos el texto: "Vuelo AV1234 (UIO-GYE) Asientos: [1A, 1B]"
+                    
+                    // A. Sacamos el Código del Vuelo (está después de "Vuelo ")
+                    String[] partes = infoIdaPrev.split(" ");
+                    String codigoVueloIda = partes[1].trim(); // "AV1234"
+                    
+                    // B. Sacamos los Asientos (están entre corchetes)
+                    int inicio = infoIdaPrev.indexOf("[") + 1;
+                    int fin = infoIdaPrev.indexOf("]");
+                    String listaAsientosStr = infoIdaPrev.substring(inicio, fin); // "1A, 1B"
+                    String[] asientosIda = listaAsientosStr.split(",");
+                    
+                    // C. Buscamos el Vuelo Real en el Cerebro
+                    vuelosfis.modelo.Vuelo vueloIda = null;
+                    for(vuelosfis.modelo.Vuelo v : controlador.getControladorReserva().getCatalogoVuelos()) {
+                        if(v.getCodigo().equalsIgnoreCase(codigoVueloIda)) {
+                            vueloIda = v;
+                            break;
+                        }
+                    }
+                    
+                    // D. Agregamos los detalles a la Reserva Final
+                    if (vueloIda != null) {
+                        System.out.println("✅ Recuperando Ida: " + codigoVueloIda + " Asientos: " + listaAsientosStr);
+                        for(String asIda : asientosIda) {
+                            vuelosfis.modelo.Asiento aObj = new vuelosfis.modelo.Asiento(asIda.trim(), 1, "Economy", 0.0);
+                            vuelosfis.modelo.DetalleReserva detIda = new vuelosfis.modelo.DetalleReserva(vueloIda, paxDummy, aObj, new vuelosfis.modelo.Economy(), true);
+                            reservaFinal.agregarDetalle(detIda);
+                        }
+                    }
+                    
+                } catch (Exception e) {
+                    System.out.println("⚠️ No se pudo reconstruir la reserva de Ida automáticamante: " + e.getMessage());
+                }
+            }
+
+            // 4. GUARDAR TODO (AHORA SÍ VAN LOS 4 ASIENTOS)
+            controlador.getControladorReserva().finalizarReserva(reservaFinal);
+
+            // 5. MOSTRAR RESUMEN
+            vuelosfis.vista.VentanaResumen vResumen = new vuelosfis.vista.VentanaResumen();
+            vResumen.setControlador(this.controlador);
+            vResumen.setReserva(reservaFinal);
+            vResumen.mostrarResumen(textoFinal, granTotal, "", 0.0);
             vResumen.setVisible(true);
         }
     }//GEN-LAST:event_btnConfirmarActionPerformed

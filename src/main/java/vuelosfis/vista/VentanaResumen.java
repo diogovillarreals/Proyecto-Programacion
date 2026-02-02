@@ -11,7 +11,9 @@ package vuelosfis.vista;
 public class VentanaResumen extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(VentanaResumen.class.getName());
-
+    private vuelosfis.controlador.ControladorVuelo controlador;
+    private vuelosfis.modelo.Reserva reservaActual;
+    
     /**
      * Creates new form VentanaResumen
      */
@@ -44,6 +46,14 @@ public class VentanaResumen extends javax.swing.JFrame {
         // 3. Mostrar en pantalla
         txtDetalle.setText(resumen.toString());
         lblTotal.setText("Subtotal: $ " + String.format("%.2f", total));
+    }
+    
+    public void setControlador(vuelosfis.controlador.ControladorVuelo controlador) {
+        this.controlador = controlador;
+    }
+    
+    public void setReserva(vuelosfis.modelo.Reserva reserva) {
+        this.reservaActual = reserva;
     }
     
     /**
@@ -135,7 +145,19 @@ public class VentanaResumen extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnAceptarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAceptarActionPerformed
-        javax.swing.JOptionPane.showMessageDialog(this, "¡Gracias por tu compra!");
+        if (this.controlador == null || this.reservaActual == null) {
+            javax.swing.JOptionPane.showMessageDialog(this, "❌ Error: Datos de reserva no cargados.");
+            return;
+        }
+
+        // 2. EL GUARDADO REAL (Punto de Control 2)
+        // Aquí le ordenamos al cerebro que escriba en el archivo .csv
+        this.controlador.getControladorReserva().finalizarReserva(this.reservaActual);
+
+        // 3. Mensaje de Éxito y Cierre
+        javax.swing.JOptionPane.showMessageDialog(this, "✅ ¡Compra Exitosa! Tu reserva ha sido guardada.");
+        
+        // Opcional: Cerrar todo
         System.exit(0);
     }//GEN-LAST:event_btnAceptarActionPerformed
 

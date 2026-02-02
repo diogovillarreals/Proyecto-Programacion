@@ -43,4 +43,5 @@ public class Asiento {
     public String getColumna() { 
         return columna; 
     }
+    
 }
