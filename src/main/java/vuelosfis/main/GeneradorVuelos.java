@@ -1,4 +1,4 @@
-package vuelosfis;
+package vuelosfis.main;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;

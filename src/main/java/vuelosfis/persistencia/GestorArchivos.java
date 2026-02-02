@@ -145,4 +145,50 @@ public class GestorArchivos {
         }
         return lineas;
     }
+    
+    // ---------------------------------------------------------
+    // GENERAR FACTURA DE VENTA (TXT)
+    // ---------------------------------------------------------
+    public static void generarFactura(vuelosfis.modelo.Reserva reserva, String detalleCompleto, double totalPagado) {
+        
+        String nombreArchivo = "Factura_" + reserva.getCodigoReserva() + ".txt";
+        
+        try (java.io.FileWriter fw = new java.io.FileWriter(nombreArchivo);
+             java.io.PrintWriter out = new java.io.PrintWriter(fw)) {
+
+            // Encabezado
+            out.println("=================================================");
+            out.println("             VUELOS FIS - FACTURA                ");
+            out.println("=================================================");
+            out.println("Fecha de Emisión: " + java.time.LocalDateTime.now());
+            out.println("Código Reserva:   " + reserva.getCodigoReserva());
+            out.println("=================================================");
+            out.println("");
+            
+            // --- CAMBIO AQUÍ: Solo mostramos "Cliente" ---
+            out.println("DATOS DEL CLIENTE:");
+            out.println("Cliente"); 
+            // ---------------------------------------------
+            
+            out.println("-------------------------------------------------");
+            out.println("");
+
+            // Detalles del Vuelo
+            out.println("DETALLES DEL ITINERARIO Y ASIENTOS:");
+            out.println(detalleCompleto); 
+            
+            out.println("");
+            out.println("=================================================");
+            out.println(" TOTAL PAGADO:   $ " + String.format("%.2f", totalPagado));
+            out.println("=================================================");
+            out.println("      ¡Gracias por volar con nosotros!           ");
+            out.println("=================================================");
+
+            System.out.println("✅ Factura generada correctamente: " + nombreArchivo);
+
+        } catch (java.io.IOException e) {
+            System.err.println("❌ Error al crear la factura: " + e.getMessage());
+        }
+    }
+    
     }

@@ -499,9 +499,9 @@ public class VentanaSeleccionAsientos extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnConfirmarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnConfirmarActionPerformed
-       // 1. VALIDACIÓN BÁSICA
+        // 1. Validación de seguridad
         if (misAsientos.size() < pasajerosTotal) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Faltan asientos por seleccionar.");
+            javax.swing.JOptionPane.showMessageDialog(this, "Selecciona todos los asientos.");
             return;
         }
 
@@ -543,8 +543,7 @@ public class VentanaSeleccionAsientos extends javax.swing.JFrame {
                  reservaFinal.agregarDetalle(det);
             }
 
-            // 3. --- EL TRUCO MAESTRO: RECUPERAR LA IDA PERDIDA ---
-            // Si es viaje redondo y estamos en la vuelta, hay que rescatar los datos de la Ida
+        // 3. RECONSTRUCCIÓN DE LA IDA (Solo si es viaje redondo y estamos en la vuelta)
             double granTotal = totalEsteTramo;
             String textoFinal = infoEsteTramo;
 
@@ -553,51 +552,49 @@ public class VentanaSeleccionAsientos extends javax.swing.JFrame {
                 textoFinal = infoIdaPrev + "\n" + infoEsteTramo;
                 
                 try {
-                    // ¡AQUÍ ESTÁ LA MAGIA! 
-                    // Analizamos el texto: "Vuelo AV1234 (UIO-GYE) Asientos: [1A, 1B]"
-                    
-                    // A. Sacamos el Código del Vuelo (está después de "Vuelo ")
-                    String[] partes = infoIdaPrev.split(" ");
-                    String codigoVueloIda = partes[1].trim(); // "AV1234"
-                    
-                    // B. Sacamos los Asientos (están entre corchetes)
-                    int inicio = infoIdaPrev.indexOf("[") + 1;
-                    int fin = infoIdaPrev.indexOf("]");
-                    String listaAsientosStr = infoIdaPrev.substring(inicio, fin); // "1A, 1B"
-                    String[] asientosIda = listaAsientosStr.split(",");
-                    
-                    // C. Buscamos el Vuelo Real en el Cerebro
+                    // Extraer datos de la cadena guardada en el tramo anterior
+                    String codVueloIda = infoIdaPrev.split(" ")[1].trim();
+                    String asientosStr = infoIdaPrev.substring(infoIdaPrev.indexOf("[") + 1, infoIdaPrev.indexOf("]"));
+                    String[] arrayAsientos = asientosStr.split(",");
+
+                    // Buscar el vuelo de ida en el catálogo
                     vuelosfis.modelo.Vuelo vueloIda = null;
-                    for(vuelosfis.modelo.Vuelo v : controlador.getControladorReserva().getCatalogoVuelos()) {
-                        if(v.getCodigo().equalsIgnoreCase(codigoVueloIda)) {
+                    for (vuelosfis.modelo.Vuelo v : controlador.getControladorReserva().getCatalogoVuelos()) {
+                        if (v.getCodigo().equalsIgnoreCase(codVueloIda)) {
                             vueloIda = v;
                             break;
                         }
                     }
-                    
-                    // D. Agregamos los detalles a la Reserva Final
+
+                    // Agregar detalles de ida a la reserva final (UNA SOLA VEZ)
                     if (vueloIda != null) {
-                        System.out.println("✅ Recuperando Ida: " + codigoVueloIda + " Asientos: " + listaAsientosStr);
-                        for(String asIda : asientosIda) {
-                            vuelosfis.modelo.Asiento aObj = new vuelosfis.modelo.Asiento(asIda.trim(), 1, "Economy", 0.0);
-                            vuelosfis.modelo.DetalleReserva detIda = new vuelosfis.modelo.DetalleReserva(vueloIda, paxDummy, aObj, new vuelosfis.modelo.Economy(), true);
-                            reservaFinal.agregarDetalle(detIda);
+                        for (String as : arrayAsientos) {
+                            vuelosfis.modelo.Asiento aObjIda = new vuelosfis.modelo.Asiento(as.trim(), 1, "Economy", 0.0);
+                            reservaFinal.agregarDetalle(new vuelosfis.modelo.DetalleReserva(vueloIda, paxDummy, aObjIda, new vuelosfis.modelo.Economy(), true));
                         }
                     }
-                    
                 } catch (Exception e) {
                     System.out.println("⚠️ No se pudo reconstruir la reserva de Ida automáticamante: " + e.getMessage());
                 }
             }
 
-            // 4. GUARDAR TODO (AHORA SÍ VAN LOS 4 ASIENTOS)
+        // 4. GUARDADO ÚNICO
             controlador.getControladorReserva().finalizarReserva(reservaFinal);
 
             // 5. MOSTRAR RESUMEN
             vuelosfis.vista.VentanaResumen vResumen = new vuelosfis.vista.VentanaResumen();
             vResumen.setControlador(this.controlador);
             vResumen.setReserva(reservaFinal);
-            vResumen.mostrarResumen(textoFinal, granTotal, "", 0.0);
+            
+            if (esViajeRedondo) {
+                // AQUÍ ESTÁ LA MAGIA: Enviamos Ida y Vuelta por separado
+                // Arg 1: Info Ida, Arg 2: Precio Ida, Arg 3: Info Vuelta, Arg 4: Precio Vuelta
+                vResumen.mostrarResumen(infoIdaPrev, precioIdaPrevTotal, infoEsteTramo, totalEsteTramo);
+            } else {
+                // Solo Ida
+                vResumen.mostrarResumen(infoEsteTramo, totalEsteTramo, "", 0.0);
+            }
+        
             vResumen.setVisible(true);
         }
     }//GEN-LAST:event_btnConfirmarActionPerformed

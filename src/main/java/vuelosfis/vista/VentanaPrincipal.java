@@ -6,6 +6,9 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(VentanaPrincipal.class.getName());
     private ControladorVuelo controlador;
+    // Variable para guardar la lista maestra de ciudades
+    private java.util.ArrayList<String> todasLasCiudades = new java.util.ArrayList<>();
+    
     /**
      * Creates new form VentanaPrincipal
      */
@@ -61,7 +64,10 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     
     public void setControlador(ControladorVuelo controladorRecibido) {
         this.controlador = controladorRecibido;
-        cargarCiudadesDisponibles();
+        // Esto es lo que rellena los combos cuando regresas de VentanaVuelosIda
+        if (this.controlador != null) {
+            cargarCiudadesDisponibles();
+    }
     }
     
     public ControladorVuelo getControlador() {
@@ -69,39 +75,69 @@ public class VentanaPrincipal extends javax.swing.JFrame {
     }
     
     private void cargarCiudadesDisponibles() {
-        // Limpiamos los combos para no duplicar si llamamos esto dos veces
         cbOrigen.removeAllItems();
         cbDestino.removeAllItems();
+        todasLasCiudades.clear();
 
-        // Verificamos que el controlador exista (Seguridad)
-        if (this.controlador == null) return;
-
-        // Obtenemos la lista de vuelos del backend
-        java.util.ArrayList<vuelosfis.modelo.Vuelo> vuelos = 
-                this.controlador.getControladorReserva().getCatalogoVuelos();
-
-        // Usamos HashSet para evitar ciudades repetidas (Ej: que no salga 5 veces "Quito")
-        java.util.HashSet<String> ciudadesOrigen = new java.util.HashSet<>();
-        java.util.HashSet<String> ciudadesDestino = new java.util.HashSet<>();
-
-        for (vuelosfis.modelo.Vuelo v : vuelos) {
-            // Extraemos nombres de ciudades
-            ciudadesOrigen.add(v.getRuta().getOrigen().getNombre());
-            ciudadesDestino.add(v.getRuta().getDestino().getNombre());
+        if (this.controlador == null) {
+            return;
         }
 
-        // Llenamos los ComboBox
-        for (String ciudad : ciudadesOrigen) {
+        // 1. Obtener ciudades y guardarlas ordenadas
+        java.util.TreeSet<String> setCiudades = new java.util.TreeSet<>();
+        for (vuelosfis.modelo.Vuelo v : this.controlador.getControladorReserva().getCatalogoVuelos()) {
+            setCiudades.add(v.getRuta().getOrigen().getNombre());
+            setCiudades.add(v.getRuta().getDestino().getNombre());
+        }
+        todasLasCiudades.addAll(setCiudades);
+
+        // 2. Limpiar listeners viejos para no causar errores
+        for (java.awt.event.ActionListener al : cbOrigen.getActionListeners()) {
+            cbOrigen.removeActionListener(al);
+        }
+
+        // 3. Llenar Origen
+        for (String ciudad : todasLasCiudades) {
             cbOrigen.addItem(ciudad);
         }
-        
-        for (String ciudad : ciudadesDestino) {
-            cbDestino.addItem(ciudad);
+
+        // 4. Agregar el evento: Si cambia Origen -> Actualiza Destino
+        cbOrigen.addActionListener(evt -> actualizarComboDestino());
+
+        // 5. Ejecutar una vez al inicio
+        if (cbOrigen.getItemCount() > 0) {
+            cbOrigen.setSelectedIndex(0);
+            actualizarComboDestino();
         }
-        
-        System.out.println("✅ Ciudades cargadas dinámicamente desde los vuelos.");
     }
     
+    private void actualizarComboDestino() {
+    String origenSeleccionado = (String) cbOrigen.getSelectedItem();
+    if (origenSeleccionado == null) return;
+
+    // 1. Guardar selección previa
+    String destinoPrevio = (String) cbDestino.getSelectedItem();
+
+    // 2. Recargar destino excluyendo el origen
+    cbDestino.removeAllItems();
+    for (String ciudad : todasLasCiudades) {
+        if (!ciudad.equals(origenSeleccionado)) {
+            cbDestino.addItem(ciudad);
+        }
+    }
+
+    // 3. Intentar mantener la selección anterior si aún es válida
+    if (destinoPrevio != null && !destinoPrevio.equals(origenSeleccionado)) {
+        // Verificar si existe en la nueva lista antes de seleccionarlo
+        boolean existe = false;
+        for(int i=0; i<cbDestino.getItemCount(); i++) {
+            if(cbDestino.getItemAt(i).equals(destinoPrevio)) { 
+                existe = true; break; 
+            }
+        }
+        if(existe) cbDestino.setSelectedItem(destinoPrevio);
+    }
+    }
     
     /**
      * This method is called from within the constructor to initialize the form.
@@ -398,7 +434,7 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         // 1. Capturar ciudades
         String origen = (String) cbOrigen.getSelectedItem();
         String destino = (String) cbDestino.getSelectedItem();
-
+        
         // CAPTURAR LA CABINA 
         String cabinaSeleccionada = cbCabina.getSelectedItem().toString();
         
