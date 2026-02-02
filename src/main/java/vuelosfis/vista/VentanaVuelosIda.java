@@ -160,7 +160,7 @@ public class VentanaVuelosIda extends javax.swing.JFrame {
                 {null, null, null, null, null}
             },
             new String [] {
-                "Salida", "Llegada", "Duración", "Tipo", "Precio"
+                "Vuelo", "Salida", "Duración", "Precio", "Avión"
             }
         ) {
             boolean[] canEdit = new boolean [] {
@@ -240,15 +240,15 @@ public class VentanaVuelosIda extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnAtrasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAtrasActionPerformed
-    // 1. Crear una nueva instancia de la Ventana Principal
-    VentanaPrincipal ventana1 = new VentanaPrincipal();
-    
-    // 2. Hacerla visible y centrarla
-    ventana1.setVisible(true);
-    ventana1.setLocationRelativeTo(null);
-    
-    // 3. Cerrar esta ventana actual de resultados
-    this.dispose();
+        // 1. Crear la nueva instancia de la pantalla principal
+        vuelosfis.vista.VentanaPrincipal ventana1 = new vuelosfis.vista.VentanaPrincipal();
+        
+        // 2. Pasarle el controlador para que recupere la memoria
+        ventana1.setControlador(this.controlador); 
+        
+        // 3. Mostrarla y cerrar la actual
+        ventana1.setVisible(true);
+        this.dispose();
     }//GEN-LAST:event_btnAtrasActionPerformed
 
     private void btnSeleccionarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSeleccionarActionPerformed

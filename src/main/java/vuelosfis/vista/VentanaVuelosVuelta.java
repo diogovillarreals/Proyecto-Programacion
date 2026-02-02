@@ -232,10 +232,13 @@ public class VentanaVuelosVuelta extends javax.swing.JFrame {
     }//GEN-LAST:event_btnFinalizarActionPerformed
 
     private void btnAtrasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAtrasActionPerformed
-    // Volver al inicio
-    VentanaPrincipal v1 = new VentanaPrincipal();
-    v1.setVisible(true);
-    this.dispose();
+        vuelosfis.vista.VentanaPrincipal ventana1 = new vuelosfis.vista.VentanaPrincipal();
+        
+        // Pasar el controlador
+        ventana1.setControlador(this.controlador); 
+        
+        ventana1.setVisible(true);
+        this.dispose();
     }//GEN-LAST:event_btnAtrasActionPerformed
 
     /**

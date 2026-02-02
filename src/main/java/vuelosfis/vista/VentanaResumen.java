@@ -13,6 +13,7 @@ public class VentanaResumen extends javax.swing.JFrame {
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(VentanaResumen.class.getName());
     private vuelosfis.controlador.ControladorVuelo controlador;
     private vuelosfis.modelo.Reserva reservaActual;
+    private double totalCalculado = 0.0;
     
     /**
      * Creates new form VentanaResumen
@@ -43,6 +44,9 @@ public class VentanaResumen extends javax.swing.JFrame {
             total += precioVuelta;
         }
 
+        // Guardar el total en la variable de clase 
+        this.totalCalculado = total;
+        
         // 3. Mostrar en pantalla
         txtDetalle.setText(resumen.toString());
         lblTotal.setText("Subtotal: $ " + String.format("%.2f", total));
@@ -70,7 +74,7 @@ public class VentanaResumen extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         txtDetalle = new javax.swing.JTextArea();
         lblTotal = new javax.swing.JLabel();
-        btnAceptar = new javax.swing.JButton();
+        btnComprar = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -86,9 +90,9 @@ public class VentanaResumen extends javax.swing.JFrame {
         lblTotal.setFont(new java.awt.Font("Lucida Bright", 0, 18)); // NOI18N
         lblTotal.setText("Subtotal: $");
 
-        btnAceptar.setFont(new java.awt.Font("Lucida Bright", 0, 18)); // NOI18N
-        btnAceptar.setText("Comprar");
-        btnAceptar.addActionListener(this::btnAceptarActionPerformed);
+        btnComprar.setFont(new java.awt.Font("Lucida Bright", 0, 18)); // NOI18N
+        btnComprar.setText("Comprar");
+        btnComprar.addActionListener(this::btnComprarActionPerformed);
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -107,7 +111,7 @@ public class VentanaResumen extends javax.swing.JFrame {
                         .addContainerGap()
                         .addComponent(lblTotal, javax.swing.GroupLayout.PREFERRED_SIZE, 534, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(btnAceptar)))
+                        .addComponent(btnComprar)))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -120,7 +124,7 @@ public class VentanaResumen extends javax.swing.JFrame {
                 .addGap(18, 18, 18)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblTotal)
-                    .addComponent(btnAceptar))
+                    .addComponent(btnComprar))
                 .addContainerGap(26, Short.MAX_VALUE))
         );
 
@@ -144,22 +148,29 @@ public class VentanaResumen extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void btnAceptarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAceptarActionPerformed
-        if (this.controlador == null || this.reservaActual == null) {
-            javax.swing.JOptionPane.showMessageDialog(this, "❌ Error: Datos de reserva no cargados.");
+    private void btnComprarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnComprarActionPerformed
+if (this.reservaActual == null) {
+            javax.swing.JOptionPane.showMessageDialog(this, "❌ Error: No hay reserva activa.");
             return;
         }
+        // --- GENERAR LA FACTURA FÍSICA ---
+        // Llamamos al nuevo método que creamos en GestorArchivos
+        vuelosfis.persistencia.GestorArchivos.generarFactura(
+            this.reservaActual, 
+            txtDetalle.getText(), // Pasamos el texto exacto que ve el usuario
+            this.totalCalculado
+        );
 
-        // 2. EL GUARDADO REAL (Punto de Control 2)
-        // Aquí le ordenamos al cerebro que escriba en el archivo .csv
-        this.controlador.getControladorReserva().finalizarReserva(this.reservaActual);
-
-        // 3. Mensaje de Éxito y Cierre
-        javax.swing.JOptionPane.showMessageDialog(this, "✅ ¡Compra Exitosa! Tu reserva ha sido guardada.");
+        // Mensaje de Éxito
+        String msg = "✅ ¡Compra Exitosa!\n\n" +
+                     "Se ha generado la factura: Factura_" + reservaActual.getCodigoReserva() + ".txt\n" +
+                     "en la carpeta del proyecto.";
+                     
+        javax.swing.JOptionPane.showMessageDialog(this, msg);
         
-        // Opcional: Cerrar todo
+        // Cerrar el programa
         System.exit(0);
-    }//GEN-LAST:event_btnAceptarActionPerformed
+    }//GEN-LAST:event_btnComprarActionPerformed
 
     /**
      * @param args the command line arguments
@@ -187,7 +198,7 @@ public class VentanaResumen extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btnAceptar;
+    private javax.swing.JButton btnComprar;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
