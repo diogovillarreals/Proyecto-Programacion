@@ -15,6 +15,6 @@ public class PlanBasico extends PlanAdicional{
     
     @Override
     public double calcularTotal(int numeroPasajeros) {
-        return 0.0; // Siempre es gratis
+        return 0.0; 
     }
 }

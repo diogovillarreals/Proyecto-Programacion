@@ -22,7 +22,7 @@ public class TestFase7 {
         ArrayList<Vuelo> catalogo = control.getCatalogoVuelos();
 
         if (catalogo.isEmpty()) {
-            System.out.println("❌ ERROR CRÍTICO: No hay vuelos en memoria. Revisa 'vuelos.txt'.");
+            System.out.println("ERROR CRÍTICO: No hay vuelos en memoria. Revisa 'vuelos.txt'.");
             return;
         }
 
@@ -42,19 +42,19 @@ public class TestFase7 {
         }
 
         if (asiento1A == null) {
-            System.out.println("❌ ERROR: No se encontró el asiento 1A en el avión.");
+            System.out.println("ERROR: No se encontró el asiento 1A en el avión.");
             return;
         }
 
         // 3. EL VEREDICTO FINAL
-        System.out.println("   -> Estado del asiento 1A en memoria: " + (asiento1A.isDisponible() ? "LIBRE 🟢" : "OCUPADO 🔴"));
+        System.out.println("   -> Estado del asiento 1A en memoria: " + (asiento1A.isDisponible() ? "LIBRE" : "OCUPADO"));
 
         if (!asiento1A.isDisponible()) {
-            System.out.println("\n✅ PRUEBA SUPERADA: ¡NO HAY AMNESIA!");
+            System.out.println("\n PRUEBA SUPERADA: ¡NO HAY AMNESIA!");
             System.out.println("   El sistema recordó que vendiste este asiento en la Fase 6.");
             System.out.println("   El Controlador procesó correctamente el archivo 'reservas.csv'.");
         } else {
-            System.out.println("\n❌ PRUEBA FALLIDA: AMNESIA DETECTADA.");
+            System.out.println("\n PRUEBA FALLIDA: AMNESIA DETECTADA.");
             System.out.println("   El asiento aparece LIBRE, pero debería estar OCUPADO.");
             System.out.println("   Revisa el método 'cargarDatosIniciales' en ControladorReserva.");
         }

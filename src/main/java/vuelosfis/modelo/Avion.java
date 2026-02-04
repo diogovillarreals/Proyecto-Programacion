@@ -4,8 +4,8 @@ import java.util.ArrayList;
 
 public class Avion {
 
-    public static final int FILAS = 7;
-    public static final int COLUMNAS = 6;
+    public static final int FILAS = 10;
+    public static final int COLUMNAS = 4;
 
     private String modelo;
     private ArrayList<Asiento> listaAsientos;
@@ -32,23 +32,32 @@ public class Avion {
     }
 
     private void generarAsientos() {
-        String letras = "ABCDEF";
+        String letras = "ABCD"; 
 
-        for (int i = 1; i<=FILAS; i++){
-            for (int j = 0; j<COLUMNAS; j++){
-                String letraColumna = String.valueOf(letras.charAt(j));
-                String codigoAsiento = i + letraColumna;
-                double precioExtra = 0;
+        for (int f = 1; f <= FILAS; f++) {
+            for (int i = 0; i < COLUMNAS; i++) {
                 
-                if (j==0 || j==COLUMNAS-1){
-                    precioExtra = 10.0;
+                // A. Preparar datos individuales
+                char letraChar = letras.charAt(i);
+                String columnaStr = String.valueOf(letraChar); // "A", "B"...
+                String codigo = f + columnaStr;                // "1A", "1B"...
+
+                // B. Definir precio según la fila (para que coincida con tu vista)
+                double precio = 0.0;
+                if (f <= 3) {
+                    precio = 50.0; // Business
+                } else if (f <= 5) {
+                    precio = 25.0; // Premium
+                } else {
+                    precio = 10.0; // Economy
                 }
+
+                // C. INSTANCIAR EL ASIENTO
+                Asiento asiento = new Asiento(codigo, f, columnaStr, precio);
                 
-                Asiento nuevoAsiento = new Asiento(codigoAsiento, i, letraColumna,
-                precioExtra);
-                listaAsientos.add(nuevoAsiento);
+                listaAsientos.add(asiento);
             }
         }
     }
-   
 }
+

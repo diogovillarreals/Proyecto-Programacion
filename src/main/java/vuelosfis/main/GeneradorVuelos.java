@@ -27,8 +27,8 @@ public class GeneradorVuelos {
             LocalDate fechaInicio = LocalDate.now(); 
             int diasGenerar = 30; 
 
-            System.out.println("🚀 REPARANDO VUELOS.TXT...");
-            System.out.println("📋 Orden obligatorio: COD,ORG,DEST,DURACION,FECHA,HORA,PRECIO,MODELO,ASIENTOS");
+            System.out.println("REPARANDO VUELOS.TXT...");
+            System.out.println("Orden obligatorio: COD,ORG,DEST,DURACION,FECHA,HORA,PRECIO,MODELO,ASIENTOS");
 
             for (int i = 0; i < diasGenerar; i++) {
                 LocalDate fechaActual = fechaInicio.plusDays(i);
@@ -54,7 +54,7 @@ public class GeneradorVuelos {
                             // [1] Origen
                             // [2] Destino
                             // [3] DURACIÓN (Entero)
-                            // [4] FECHA (YYYY-MM-DD)  <-- AQUÍ FALLABA ANTES (Había precio)
+                            // [4] FECHA (YYYY-MM-DD)
                             // [5] HORA (HH:MM)
                             // [6] PRECIO (Double con punto)
                             // [7] Modelo
@@ -65,7 +65,7 @@ public class GeneradorVuelos {
                                     origen,         // 1
                                     destino,        // 2
                                     duracion,       // 3
-                                    fechaActual,    // 4 (La Fecha DEBE ir aquí)
+                                    fechaActual,    // 4 
                                     hora,           // 5
                                     precioFinal,    // 6
                                     modeloAvion,    // 7
@@ -79,10 +79,10 @@ public class GeneradorVuelos {
                     }
                 }
             }
-            System.out.println("✅ ¡ARCHIVO CORREGIDO! Ejecuta ahora el Main.");
+            System.out.println("Ejecuta ahora el Main.");
 
         } catch (IOException e) {
-            System.err.println("❌ Error: " + e.getMessage());
+            System.err.println("Error: " + e.getMessage());
         }
     }
 }

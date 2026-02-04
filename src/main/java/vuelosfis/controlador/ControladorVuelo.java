@@ -13,19 +13,22 @@ public class ControladorVuelo {
      * Este método se llama desde el MAIN para arrancar todo.
      */
     public void iniciarSistema() {
-        System.out.println("--- INICIANDO CONTROLADORES (FASE 7) ---");
+        System.out.println("INICIANDO CONTROLADORES");
         
         // 1. Cargar datos y restaurar memoria
         controladorReserva.cargarDatosIniciales();
         
-        System.out.println(">> Backend listo. Esperando Ventana (Fase 8)...");
+        System.out.println("Datos cargados. Abriendo Ventana Principal");
         
-        // AQUÍ IRÁ EL CÓDIGO DE LA VENTANA EN EL FUTURO:
-        /*
-        this.ventana = new VentanaPrincipal();
-        this.ventana.setControlador(controladorReserva);
-        this.ventana.setVisible(true);
-        */
+        // 1. Creamos la ventana visual
+        vuelosfis.vista.VentanaPrincipal ventana = new vuelosfis.vista.VentanaPrincipal();
+        
+        // 2. Le pasamos 'this' (este controlador) para que la ventana pueda buscar vuelos
+        ventana.setControlador(this); 
+        
+        // 3. La mostramos en el centro de la pantalla
+        ventana.setLocationRelativeTo(null);
+        ventana.setVisible(true);
     }
     
     public ControladorReserva getControladorReserva() {

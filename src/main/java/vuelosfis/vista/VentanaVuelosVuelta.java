@@ -211,7 +211,7 @@ public class VentanaVuelosVuelta extends javax.swing.JFrame {
         this.setVisible(false);
         VentanaSeleccionTarifa vTarifas = new VentanaSeleccionTarifa();
 
-        // 2. Pasamos los datos (CON LA CORRECCIÓN DE FECHA)
+        // 2. Pasamos los datos
         vTarifas.inicializar(
                 this.controlador,   // Cerebro
                 vueloRetorno,       // Vuelo Objeto
