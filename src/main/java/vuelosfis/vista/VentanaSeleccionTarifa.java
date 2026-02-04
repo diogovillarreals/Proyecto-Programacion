@@ -13,9 +13,8 @@ public class VentanaSeleccionTarifa extends javax.swing.JFrame {
     private String origen, destino, fechaVueltaGuardada;
     private int pasajeros;
     
-    // --- AGREGADO: Variable para recordar la cabina original ---
+    // Variable para recordar la cabina original
     private String cabinaOriginal; 
-    // ----------------------------------------------------------
 
     private String infoIdaPrev;      
     private double precioIdaPrev = 0.0;
@@ -29,10 +28,9 @@ public class VentanaSeleccionTarifa extends javax.swing.JFrame {
     /**
      * CONFIGURACIÓN INICIAL Recibe el precio base y calcula las 3 opciones
      * originales: 1. Básica 2. Con Maletas 3. Con Prioridad
-     * * --- MODIFICADO: Ahora recibe 'cabina' al final ---
      */
     public void inicializar(vuelosfis.controlador.ControladorVuelo ctrl,vuelosfis.modelo.Vuelo vuelo,String origen, String destino, String fecha, String precioBaseStr,
-            int pasajeros, boolean esRedondo, boolean esIda, String fechaVuelta, String cabina) { // <--- AÑADIDO
+            int pasajeros, boolean esRedondo, boolean esIda, String fechaVuelta, String cabina) {
         
         this.controlador = ctrl;
         this.vueloActual = vuelo;
@@ -43,12 +41,11 @@ public class VentanaSeleccionTarifa extends javax.swing.JFrame {
         this.esTramoIda = esIda;
         this.fechaVueltaGuardada = fechaVuelta;
         
-        // --- AGREGADO: Guardamos la cabina ---
+        // Guardamos la cabina ---
         this.cabinaOriginal = cabina;
-        // -------------------------------------
         
         if (this.controlador == null) {
-            System.out.println("⚠️ ALERTA: Controlador llegó nulo a Tarifas. Creando uno de emergencia...");
+            System.out.println("ALERTA: Controlador llegó nulo a Tarifas. Creando uno de emergencia...");
             this.controlador = new vuelosfis.controlador.ControladorVuelo(); 
             // Esto asegura que al menos podamos leer el archivo y bloquear asientos
             this.controlador.getControladorReserva().cargarDatosIniciales();
@@ -60,7 +57,7 @@ public class VentanaSeleccionTarifa extends javax.swing.JFrame {
         // 1. Limpiar el precio para hacer matemáticas ($ 100.00 -> 100.00)
         double base = Double.parseDouble(precioBaseStr.replace("$", "").replace(" ", "").trim());
 
-        // 2. CÁLCULO DE LAS 3 TARIFAS (Según lo acordado)
+        // 2. CÁLCULO DE LAS 3 TARIFAS 
         // A. BÁSICA: Precio tal cual sale en la tabla
         double pBasic = base;
 

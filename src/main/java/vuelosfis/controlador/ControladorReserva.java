@@ -20,20 +20,20 @@ public class ControladorReserva {
      * MÉTODOS DE INICIO 
      */
     public void cargarDatosIniciales() {
-        System.out.println("🔄 Cargando sistema...");
+        System.out.println("Cargando sistema");
 
         // PASO 1: Cargar los aviones
         this.catalogoVuelos = GestorArchivos.cargarVuelos();
 
         if (catalogoVuelos.isEmpty()) {
-            System.out.println("⚠️ ALERTA: No hay vuelos en 'vuelos.txt'.");
+            System.out.println("ALERTA: No hay vuelos en 'vuelos.txt'.");
             return;
         }
 
         // PASO 2: RECUPERAR MEMORIA
         actualizarMemoriaDesdeArchivo(); // <--- Usamos un método centralizado
         
-        System.out.println("✅ Sistema sincronizado. " + historialReservas.size() + " reservas activas.");
+        System.out.println("Sistema sincronizado. " + historialReservas.size() + " reservas activas.");
     }
     
     // !!! NUEVO MÉTODO AUXILIAR PARA NO REPETIR CÓDIGO
@@ -65,7 +65,7 @@ public class ControladorReserva {
      */
     public void finalizarReserva(vuelosfis.modelo.Reserva nuevaReserva) {
         if (nuevaReserva == null || nuevaReserva.getListaDetalles().isEmpty()) {
-            System.out.println("❌ Error: Intentando guardar reserva vacía.");
+            System.out.println("Error: Intentando guardar reserva vacía.");
             return;
         }
 
@@ -85,7 +85,7 @@ public class ControladorReserva {
              }
         }
         
-        System.out.println("💾 Reserva guardada y memoria actualizada. Total reservas: " + historialReservas.size());
+        System.out.println("Reserva guardada y memoria actualizada. Total reservas: " + historialReservas.size());
     }
 
     public ArrayList<Vuelo> getCatalogoVuelos() {
@@ -115,7 +115,7 @@ public class ControladorReserva {
                         asientoEnArchivo.equalsIgnoreCase(numeroAsiento.trim())) {
                         
                         // DEBUG: Para saber si encontró algo
-                        // System.out.println("🔒 Asiento ocupado encontrado: " + numeroAsiento + " en vuelo " + codigoVuelo);
+                        // System.out.println("Asiento ocupado encontrado: " + numeroAsiento + " en vuelo " + codigoVuelo);
                         return true;
                     }
                 }

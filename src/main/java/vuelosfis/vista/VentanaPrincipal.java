@@ -513,7 +513,6 @@ public class VentanaPrincipal extends javax.swing.JFrame {
         boolean esRedondo = rbIdaVuelta.isSelected();
         
         // Pasamos los 7 datos necesarios:
-        // Origen, Destino, FechaIda, FechaVuelta, TotalPasajeros, esIdaYVuelta, cabinaSeleccionada
         ventana2.recibirDatos(origen, destino, fechaIdaTexto, fechaVueltaTexto, totalPasajeros, esRedondo, cabinaSeleccionada);
 
         ventana2.setVisible(true);

@@ -12,6 +12,6 @@ public class Nino implements TipoPasajero{
     
     @Override
     public double getDescuento() {
-        return 0.25; // 25% de descuento
+        return 0.0;
     }
 }

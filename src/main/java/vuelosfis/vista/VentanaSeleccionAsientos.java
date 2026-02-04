@@ -31,7 +31,7 @@ public class VentanaSeleccionAsientos extends javax.swing.JFrame {
     private ArrayList<String> misAsientos = new ArrayList<>();
 
     public VentanaSeleccionAsientos() {
-        initComponents(); // Carga tu diseño de NetBeans
+        initComponents();
         this.setSize(800, 479);
         this.setLocationRelativeTo(null);
     }
@@ -119,16 +119,15 @@ public class VentanaSeleccionAsientos extends javax.swing.JFrame {
         }
         
         if (this.controlador != null) {
-            // Verificar si el historial está vacío. Si sí, ¡OBLIGAMOS A LEER EL ARCHIVO!
-            // (Nota: Esto asume que tienes un método para checar si está vacío o simplemente recargamos)
+            // Verificar si el historial está vacío. Si sí, obligamos a leer el archivo
             
-            System.out.println("🔍 Verificando memoria de reservas para el vuelo: " + this.vueloActual.getCodigo());
+            System.out.println(" Verificando memoria de reservas para el vuelo: " + this.vueloActual.getCodigo());
             
             // Forzamos la carga de datos del archivo 'reservas.csv' en este instante
             // Esto arregla el problema de que la Ida llegue vacía.
             this.controlador.getControladorReserva().cargarDatosIniciales(); 
         } else {
-             System.out.println("❌ ERROR CRÍTICO: El controlador es NULL en Asientos.");
+             System.out.println(" ERROR CRÍTICO: El controlador es NULL en Asientos.");
         }
         
         // Forzar cuadrícula de 5 columnas
@@ -143,7 +142,7 @@ public class VentanaSeleccionAsientos extends javax.swing.JFrame {
 
         String[] letras = {"A", "B", "C", "D"};
 
-        // --- BUCLE PARA CREAR LOS 10 FILAS ---
+        // --- BUCLE PARA CREAR LAS 10 FILAS ---
         for (int fila = 1; fila <= 10; fila++) {
             for (int col = 0; col < 5; col++) {
                 
@@ -179,8 +178,7 @@ public class VentanaSeleccionAsientos extends javax.swing.JFrame {
                 
                 boolean estaOcupado = false;
                 if (this.controlador != null) {
-                    // Nota: Asegúrate de tener este método o similar en tu controlador.
-                    // Si no lo tienes, usa el truco de abajo (*)
+
                      estaOcupado = this.controlador.getControladorReserva().verificarAsientoOcupado(
                             this.vueloActual.getCodigo(), 
                             numeroAsiento
@@ -193,7 +191,7 @@ public class VentanaSeleccionAsientos extends javax.swing.JFrame {
                     btn.setText("X"); // Marcar con X
                 }
 
-// --- 2. LÓGICA DE BLOQUEO (Tu requerimiento principal) ---
+// --- 2. LÓGICA DE BLOQUEO ---
                 boolean permitido = false;
                 String miCabina = (cabinaPermitida != null) ? cabinaPermitida.toUpperCase() : "ECONOMY";
 
@@ -509,9 +507,7 @@ public class VentanaSeleccionAsientos extends javax.swing.JFrame {
         double totalEsteTramo = (precioBaseUnitario * pasajerosTotal) + costoAsientosTotal;
         String infoEsteTramo = "Vuelo " + vueloActual.getCodigo() + " (" + origen + "-" + destino + ") Asientos: " + misAsientos;
 
-        // =====================================================================
         // CAMINO A: IDA Y VUELTA (ESTAMOS EN LA IDA) -> IR A LA VUELTA
-        // =====================================================================
         if (esViajeRedondo && esTramoIda) {
             this.setVisible(false);
             vuelosfis.vista.VentanaVuelosVuelta vVuelta = new vuelosfis.vista.VentanaVuelosVuelta();
@@ -525,9 +521,7 @@ public class VentanaSeleccionAsientos extends javax.swing.JFrame {
             vVuelta.setVisible(true);
         } 
         
-        // =====================================================================
         // CAMINO B: FIN DEL VIAJE (SOLO IDA O ESTAMOS EN LA VUELTA) -> GUARDAR
-        // =====================================================================
         else {
             this.setVisible(false);
 
@@ -566,7 +560,7 @@ public class VentanaSeleccionAsientos extends javax.swing.JFrame {
                         }
                     }
 
-                    // Agregar detalles de ida a la reserva final (UNA SOLA VEZ)
+                    // Agregar detalles de ida a la reserva final 
                     if (vueloIda != null) {
                         for (String as : arrayAsientos) {
                             vuelosfis.modelo.Asiento aObjIda = new vuelosfis.modelo.Asiento(as.trim(), 1, "Economy", 0.0);
@@ -574,7 +568,7 @@ public class VentanaSeleccionAsientos extends javax.swing.JFrame {
                         }
                     }
                 } catch (Exception e) {
-                    System.out.println("⚠️ No se pudo reconstruir la reserva de Ida automáticamante: " + e.getMessage());
+                    System.out.println(" No se pudo reconstruir la reserva de Ida automáticamante: " + e.getMessage());
                 }
             }
 
@@ -587,8 +581,7 @@ public class VentanaSeleccionAsientos extends javax.swing.JFrame {
             vResumen.setReserva(reservaFinal);
             
             if (esViajeRedondo) {
-                // AQUÍ ESTÁ LA MAGIA: Enviamos Ida y Vuelta por separado
-                // Arg 1: Info Ida, Arg 2: Precio Ida, Arg 3: Info Vuelta, Arg 4: Precio Vuelta
+                // Enviamos Ida y Vuelta por separado
                 vResumen.mostrarResumen(infoIdaPrev, precioIdaPrevTotal, infoEsteTramo, totalEsteTramo);
             } else {
                 // Solo Ida

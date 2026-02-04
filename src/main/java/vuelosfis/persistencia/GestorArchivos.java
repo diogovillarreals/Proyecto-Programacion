@@ -45,15 +45,13 @@ public class GestorArchivos {
                 }
 
                 try {
-                    // --- ZONA DE PELIGRO (Aquí es donde daba el error) ---
-                    // El error "AirbusA320" pasaba porque se leía el índice incorrecto.
+                    // --- ZONA DE PELIGRO ---
                     // Aseguramos leer los índices exactos del Generador:
                     
                     // Indice 3 = Duración (Número)
                     int duracion = Integer.parseInt(datos[3].trim()); 
                     
                     // Indice 6 = Precio (Número con decimales)
-                    // (Si tu código viejo leía datos[7] aquí, explotaba)
                     double precio = Double.parseDouble(datos[6].trim()); 
 
                     // --- FIN ZONA DE PELIGRO ---
@@ -73,7 +71,7 @@ public class GestorArchivos {
                     lista.add(new vuelosfis.modelo.Vuelo(codigo, ruta, fecha, hora, precio));
 
                 } catch (NumberFormatException e) {
-                    System.out.println("❌ ERROR MATEMÁTICO en línea " + numeroLinea + ": " + linea);
+                    System.out.println(" ERROR MATEMÁTICO en línea " + numeroLinea + ": " + linea);
                     System.out.println("   -> Intentó convertir texto a número y falló: " + e.getMessage());
                 }
             }
@@ -165,7 +163,7 @@ public class GestorArchivos {
             out.println("=================================================");
             out.println("");
             
-            // --- CAMBIO AQUÍ: Solo mostramos "Cliente" ---
+            // --- Mostramos "Cliente" ---
             out.println("DATOS DEL CLIENTE:");
             out.println("Cliente"); 
             // ---------------------------------------------
@@ -184,10 +182,10 @@ public class GestorArchivos {
             out.println("      ¡Gracias por volar con nosotros!           ");
             out.println("=================================================");
 
-            System.out.println("✅ Factura generada correctamente: " + nombreArchivo);
+            System.out.println(" Factura generada correctamente: " + nombreArchivo);
 
         } catch (java.io.IOException e) {
-            System.err.println("❌ Error al crear la factura: " + e.getMessage());
+            System.err.println(" Error al crear la factura: " + e.getMessage());
         }
     }
     

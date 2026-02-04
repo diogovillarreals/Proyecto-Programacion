@@ -91,7 +91,7 @@ public class VentanaVuelosIda extends javax.swing.JFrame {
                 javax.swing.JOptionPane.showMessageDialog(this, "No hay vuelos para esta fecha.");
             }
 
-            // C. Llenamos la tabla (ALINEADO PERFECTAMENTE)
+            // C. Llenamos la tabla 
             for (vuelosfis.modelo.Vuelo v : resultados) {
                 Object[] fila = {
                     v.getCodigo(),                      // Vuelo (Col 0)

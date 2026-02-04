@@ -13,6 +13,6 @@ public class Business implements TipoVuelo{
    
    @Override
    public double getMultiplicadorPrecio(){
-       return 2.0;
+       return 1.0;
    }
 }

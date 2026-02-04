@@ -19,6 +19,6 @@ public class Premium implements TipoVuelo{
     
     @Override
     public double getMultiplicadorPrecio(){
-        return 1.30;
+        return 1.0;
     }
 }

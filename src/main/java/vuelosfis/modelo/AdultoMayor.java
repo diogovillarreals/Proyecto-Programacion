@@ -12,6 +12,6 @@ public class AdultoMayor implements TipoPasajero{
     
     @Override
     public double getDescuento() {
-        return 0.50; // 50% de descuento (Por ley)
+        return 0.0;
     }
 }

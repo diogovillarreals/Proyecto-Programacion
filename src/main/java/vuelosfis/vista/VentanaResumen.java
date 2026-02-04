@@ -21,7 +21,7 @@ public class VentanaResumen extends javax.swing.JFrame {
     public VentanaResumen() {
         initComponents();
         this.setLocationRelativeTo(null);
-        txtDetalle.setEditable(false); // Para que no puedan borrar el texto
+        txtDetalle.setEditable(false); 
     }
 
         
@@ -150,11 +150,10 @@ public class VentanaResumen extends javax.swing.JFrame {
 
     private void btnComprarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnComprarActionPerformed
 if (this.reservaActual == null) {
-            javax.swing.JOptionPane.showMessageDialog(this, "❌ Error: No hay reserva activa.");
+            javax.swing.JOptionPane.showMessageDialog(this, " Error: No hay reserva activa.");
             return;
         }
         // --- GENERAR LA FACTURA FÍSICA ---
-        // Llamamos al nuevo método que creamos en GestorArchivos
         vuelosfis.persistencia.GestorArchivos.generarFactura(
             this.reservaActual, 
             txtDetalle.getText(), // Pasamos el texto exacto que ve el usuario
@@ -162,7 +161,7 @@ if (this.reservaActual == null) {
         );
 
         // Mensaje de Éxito
-        String msg = "✅ ¡Compra Exitosa!\n\n" +
+        String msg = " ¡Compra Exitosa!\n\n" +
                      "Se ha generado la factura: Factura_" + reservaActual.getCodigoReserva() + ".txt\n" +
                      "en la carpeta del proyecto.";
                      
