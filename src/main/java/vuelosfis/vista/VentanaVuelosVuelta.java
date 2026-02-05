@@ -181,18 +181,36 @@ public class VentanaVuelosVuelta extends javax.swing.JFrame {
             return;
         }
 
-        // 1. Recuperamos el Vuelo
-        vuelosfis.modelo.Vuelo vueloRetorno = this.listaResultadosVuelta.get(fila);
-        String infoVuelta = "Regreso: " + vueloRetorno.getCodigo() + " (" + vueloRetorno.getHora() + ")";
+        vuelosfis.modelo.Vuelo vueloRetorno = listaResultadosVuelta.get(fila);
+        
+        // No necesitamos crear infoVuelta aquí, lo haremos mejor en Tarifa
+        String infoVueltaDummy = ""; 
 
         this.setVisible(false);
         VentanaSeleccionTarifa vTarifas = new VentanaSeleccionTarifa();
 
-        // 2. Pasamos los datos
-        vTarifas.inicializar(controlador, vueloRetorno, origen, destino, fechaVuelta, String.valueOf(vueloRetorno.getPrecioBase()), 
-                             nAdultos, nNinos, nBebes, nMayores, // <--- AQUÍ
-                             true, false, null, cabinaIdaGuardada);
-        vTarifas.setDatosPrevios(infoIdaGuardada, precioIdaGuardado, infoVuelta);
+        // --- AQUÍ ESTÁ LA CLAVE: PASAR LOS CONTADORES (nBebes, etc.) ---
+        vTarifas.inicializar(
+            controlador, 
+            vueloRetorno, 
+            origen,         // Ojo: En esta ventana 'origen' es el lugar de salida de la vuelta
+            destino,        // y 'destino' es a donde regresas
+            fechaVuelta, 
+            String.valueOf(vueloRetorno.getPrecioBase()), 
+            
+            // ¡PASAMOS LAS CANTIDADES CORRECTAS!
+            this.nAdultos, 
+            this.nNinos, 
+            this.nBebes, 
+            this.nMayores, 
+            
+            true,           // esRedondo
+            false,          // esIda (Falso, porque es vuelta)
+            null, 
+            cabinaIdaGuardada
+        );
+        
+        vTarifas.setDatosPrevios(infoIdaGuardada, precioIdaGuardado, infoVueltaDummy);
         vTarifas.setVisible(true);
     }//GEN-LAST:event_btnFinalizarActionPerformed
 

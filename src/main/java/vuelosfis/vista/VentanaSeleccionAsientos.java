@@ -457,7 +457,7 @@ private void dibujarAsientosEnPanel() {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnConfirmarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnConfirmarActionPerformed
-// 1. Validación
+// 1. Validación de seguridad
         if(misAsientos.size() < asientosRequeridos) { 
             JOptionPane.showMessageDialog(this, "Faltan elegir asientos."); 
             return; 
@@ -537,46 +537,74 @@ private void dibujarAsientosEnPanel() {
                     String codVueloIda = "";
                     ArrayList<String> asientosIda = new ArrayList<>();
                     
-                    // a. Buscar Código de Vuelo en el texto de la Ida
+                    // 1. EXTRAER CÓDIGO DE VUELO (Usando indexOf para mayor precisión)
                     int idxVuelo = infoIdaPrev.indexOf("Vuelo ");
                     if (idxVuelo != -1) {
                         int idxFin = infoIdaPrev.indexOf("|", idxVuelo);
                         if (idxFin == -1) idxFin = infoIdaPrev.length();
+                        
                         String sucio = infoIdaPrev.substring(idxVuelo + 6, idxFin).trim();
-                        if (sucio.contains("(")) codVueloIda = sucio.substring(0, sucio.indexOf("(")).trim();
-                        else codVueloIda = sucio;
+                        // Limpiamos paréntesis si existen (ej: "AV123 (UIO-GYE)")
+                        if (sucio.contains("(")) {
+                            codVueloIda = sucio.substring(0, sucio.indexOf("(")).trim();
+                        } else {
+                            codVueloIda = sucio;
+                        }
                     }
 
-                    // b. Buscar Asientos en el texto: "Asientos: [1A, 2B]"
+                    // 2. EXTRAER LOS ASIENTOS (Buscando corchetes [...])
                     int idxAsientos = infoIdaPrev.indexOf("Asientos: ");
                     if (idxAsientos != -1) {
                         int idxAbre = infoIdaPrev.indexOf("[", idxAsientos);
                         int idxCierra = infoIdaPrev.indexOf("]", idxAbre);
+                        
                         if (idxAbre != -1 && idxCierra != -1) {
                             String contenido = infoIdaPrev.substring(idxAbre + 1, idxCierra);
                             String[] parts = contenido.split(",");
-                            for (String s : parts) if (!s.trim().isEmpty()) asientosIda.add(s.trim());
+                            for (String s : parts) {
+                                if (!s.trim().isEmpty()) asientosIda.add(s.trim());
+                            }
                         }
                     }
 
-                    // c. Buscar Objeto Vuelo y Agregar a Reserva
+                    // 3. BUSCAR EL VUELO REAL EN EL CATÁLOGO
                     vuelosfis.modelo.Vuelo vueloIda = null;
                     if(controlador != null && !codVueloIda.isEmpty()) {
                         for (vuelosfis.modelo.Vuelo v : controlador.getControladorReserva().getCatalogoVuelos()) {
-                            if (v.getCodigo().equalsIgnoreCase(codVueloIda)) { vueloIda = v; break; }
+                            if (v.getCodigo().equalsIgnoreCase(codVueloIda)) { 
+                                vueloIda = v; 
+                                break; 
+                            }
                         }
                     }
 
+                    // 4. ¡PASO CLAVE! AGREGAR LOS ASIENTOS Y MARCARLOS COMO OCUPADOS
                     if (vueloIda != null && !asientosIda.isEmpty()) {
+                        // A. Agregamos a los adultos/niños (Esto ya lo tenías)
                         for (String cod : asientosIda) {
                             vuelosfis.modelo.Asiento aIda = new vuelosfis.modelo.Asiento(cod, 1, "Economy", 0.0);
-                            aIda.ocuparAsiento(); // Marcar ocupado para que se guarde como X
+                            aIda.ocuparAsiento(); 
                             reservaFinal.agregarDetalle(new DetalleReserva(vueloIda, paxDummy, aIda, new vuelosfis.modelo.Economy(), true));
                         }
-                        System.out.println(" IDA Reconstruida con éxito en BD.");
+
+                        // B. [NUEVO] ¡AGREGAMOS AL BEBÉ A LA IDA! 
+                        // Como el bebé viaja en ambos tramos, usamos la misma cantidad 'cantBebes'
+                        if (cantBebes > 0) {
+                            Pasajero paxBebe = new Pasajero("Bebé", "000", "x", new Bebe());
+                            for (int i = 0; i < cantBebes; i++) {
+                                // Agregamos detalle SIN asiento (null) al vuelo de IDA
+                                reservaFinal.agregarDetalle(new DetalleReserva(vueloIda, paxBebe, null, new vuelosfis.modelo.Economy(), false));
+                            }
+                        }
+                        
+                        System.out.println("IDA Reconstruida: " + codVueloIda + " (" + asientosIda.size() + " asientos + " + cantBebes + " bebés)");                   
+                    } else {
+                        System.out.println("ADVERTENCIA: No se pudo reconstruir la Ida. Datos leídos: " + codVueloIda + " / " + asientosIda);
                     }
+
                 } catch (Exception e) { 
-                    System.out.println("Error reconstruyendo Ida: " + e.getMessage()); 
+                    System.out.println("Error grave reconstruyendo Ida: " + e.getMessage()); 
+                    e.printStackTrace();
                 }
                 // -----------------------------------------------------------------
 
