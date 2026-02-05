@@ -583,6 +583,9 @@ private void dibujarAsientosEnPanel() {
             } else {
                 textoFinalIda = infoEsteTramoCompleta; // Solo Ida
             }
+            
+            // 3. Guardar
+            if (controlador != null) controlador.getControladorReserva().finalizarReserva(reservaFinal);
 
             // 5. GUARDAR EN ARCHIVO
             if (controlador != null) {
