@@ -15,10 +15,12 @@ public class VentanaVuelosIda extends javax.swing.JFrame {
     private String fechaVuelta; 
     private int pasajeros;
     private boolean esIdaYVuelta;
+    private int nAdultos, nNinos, nBebes, nMayores;
     private String cabina;
     private String infoIdaPrev;
     private double precioIdaPrev = 0.0;
     private String infoVueltaActual; // Solo se usa si estamos en el paso final
+    
 
     public VentanaVuelosIda() {
         initComponents();
@@ -32,12 +34,17 @@ public class VentanaVuelosIda extends javax.swing.JFrame {
      * INYECCIÓN DE DATOS
      */
     public void recibirDatos(String origen, String destino, String fechaIda, String fechaVuelta, 
-            int pasajeros, boolean esRedondo, String cabina) {
+                             int a, int n, int b, int m, 
+                             boolean esRedondo, String cabina) {
         this.origen = origen;
         this.destino = destino;
         this.fechaIda = fechaIda;
         this.fechaVuelta = fechaVuelta; // Guardamos la fecha de vuelta
         this.pasajeros = pasajeros;
+        this.nAdultos = a;
+        this.nNinos = n;
+        this.nBebes = b;
+        this.nMayores = m;
         this.esIdaYVuelta = esRedondo;  // Guardamos si es viaje redondo
         this.cabina = cabina;
         
@@ -269,7 +276,9 @@ public class VentanaVuelosIda extends javax.swing.JFrame {
         VentanaSeleccionTarifa vTarifas = new VentanaSeleccionTarifa();
         
         // Pasamos 'precioLimpio' en vez de precioTexto
-        vTarifas.inicializar(this.controlador,vueloElegido,origen, destino, fechaIda, precioLimpio, pasajeros, esIdaYVuelta, true, fechaVuelta, this.cabina);
+        vTarifas.inicializar(this.controlador, vueloElegido, origen, destino, fechaIda, precioLimpio,
+                             nAdultos, nNinos, nBebes, nMayores, // <--- AQUÍ
+                             esIdaYVuelta, true, fechaVuelta, this.cabina);
         
         vTarifas.setVisible(true);
     }//GEN-LAST:event_btnSeleccionarActionPerformed
