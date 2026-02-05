@@ -121,116 +121,65 @@ public class VentanaSeleccionAsientos extends javax.swing.JFrame {
     }
 
   // --- DIBUJAR LOS BOTONES EN TU PANEL DE DISEÑO ---
-    private void dibujarAsientosEnPanel() {
+private void dibujarAsientosEnPanel() {
         pnlAsientos.removeAll(); 
         
+        // 1. Forzar recarga de datos del archivo para ver ocupados recientes
         if (this.controlador != null) {
+            System.out.println("Actualizando mapa de asientos...");
             this.controlador.getControladorReserva().cargarDatosIniciales();
         }
         
-        if (this.controlador != null) {
-            // Verificar si el historial está vacío. Si sí, obligamos a leer el archivo
-            
-            System.out.println(" Verificando memoria de reservas para el vuelo: " + this.vueloActual.getCodigo());
-            
-            // Forzamos la carga de datos del archivo 'reservas.csv' en este instante
-            // Esto arregla el problema de que la Ida llegue vacía.
-            this.controlador.getControladorReserva().cargarDatosIniciales(); 
-        } else {
-             System.out.println(" ERROR CRÍTICO: El controlador es NULL en Asientos.");
-        }
-        
-        // Forzar cuadrícula de 5 columnas
         pnlAsientos.setLayout(new java.awt.GridLayout(0, 5, 10, 10)); 
-        
-        // Cabeceras (A B - C D)
         String[] headers = {"A", "B", "", "C", "D"};
-        for(String h : headers) {
-            JLabel lbl = new JLabel(h, SwingConstants.CENTER);
-            pnlAsientos.add(lbl);
-        }
-
+        for(String h : headers) pnlAsientos.add(new JLabel(h, SwingConstants.CENTER));
         String[] letras = {"A", "B", "C", "D"};
 
-        // --- BUCLE PARA CREAR LAS 10 FILAS ---
         for (int fila = 1; fila <= 10; fila++) {
             for (int col = 0; col < 5; col++) {
-                
-                // Si es la columna del medio (2), ponemos el número de fila (Pasillo)
                 if (col == 2) {
                     JLabel lblFila = new JLabel(String.valueOf(fila), SwingConstants.CENTER);
                     lblFila.setForeground(Color.GRAY);
                     pnlAsientos.add(lblFila);
                     continue; 
                 }
-                
-                // Calcular letra del asiento
                 int index = (col > 2) ? col - 1 : col;
                 String numeroAsiento = fila + letras[index];
-                
                 JButton btn = new JButton(numeroAsiento);
                 btn.setPreferredSize(new java.awt.Dimension(50, 40)); 
                 
-                // --- 1. DETERMINAR CLASE DEL ASIENTO POR FILA ---
-                String tipoAsiento;
-                double precio;
-                Color colorBtn;
+                String tipo; double pr; Color c;
+                if (fila <= 3) { tipo="Business"; pr=50.0; c=new Color(255, 153, 153); } 
+                else if (fila <= 5) { tipo="Premium"; pr=25.0; c=new Color(153, 153, 255); } 
+                else { tipo="Economy"; pr=10.0; c=new Color(153, 255, 153); }
+                btn.setBackground(c);
                 
-                if (fila <= 3) { 
-                    tipoAsiento = "Business"; precio = 50.00; colorBtn = new Color(255, 153, 153); // Rojo
-                } else if (fila <= 5) {
-                    tipoAsiento = "Premium"; precio = 25.00; colorBtn = new Color(153, 153, 255); // Azul
-                } else {
-                    tipoAsiento = "Economy"; precio = 10.00; colorBtn = new Color(153, 255, 153); // Verde
+                // 2. Verificar si está ocupado
+                boolean ocupado = false;
+                if(controlador != null) {
+                    ocupado = controlador.getControladorReserva().verificarAsientoOcupado(vueloActual.getCodigo(), numeroAsiento);
                 }
                 
-                btn.setBackground(colorBtn);
-                
-                boolean estaOcupado = false;
-                if (this.controlador != null) {
-
-                     estaOcupado = this.controlador.getControladorReserva().verificarAsientoOcupado(
-                            this.vueloActual.getCodigo(), 
-                            numeroAsiento
-                     );
+                if (ocupado) { 
+                    btn.setEnabled(false); 
+                    btn.setBackground(Color.DARK_GRAY); 
+                    btn.setForeground(Color.WHITE);
+                    btn.setText("X"); // Marca visual de ocupado
                 }
-
-                if (estaOcupado) {
-                    btn.setEnabled(false);
-                    btn.setBackground(Color.DARK_GRAY); // Gris oscuro
-                    btn.setText("X"); // Marcar con X
+                else {
+                    boolean ok = false;
+                    String miC = (cabinaPermitida!=null) ? cabinaPermitida.toUpperCase() : "ECONOMY";
+                    if (miC.contains("BUSINESS")) ok=true;
+                    else if (miC.contains("PREMIUM")) { if(!tipo.equals("Business")) ok=true; }
+                    else { if(tipo.equals("Economy")) ok=true; }
+                    
+                    if(!ok) { btn.setEnabled(false); btn.setBackground(Color.LIGHT_GRAY); }
+                    else { btn.addActionListener(e -> seleccionarAsiento(btn, numeroAsiento, pr)); }
                 }
-
-// --- 2. LÓGICA DE BLOQUEO ---
-                boolean permitido = false;
-                String miCabina = (cabinaPermitida != null) ? cabinaPermitida.toUpperCase() : "ECONOMY";
-
-                if (miCabina.contains("BUSINESS")) {
-                    permitido = true; // Business puede elegir todo
-                } else if (miCabina.contains("PREMIUM")) {
-                    // Premium puede elegir Premium y Economy, pero NO Business
-                    if (!tipoAsiento.equals("Business")) permitido = true;
-                } else {
-                    // Economy solo puede elegir Economy
-                    if (tipoAsiento.equals("Economy")) permitido = true;
-                }
-                
-                // --- 3. APLICAR EL ESTADO AL BOTÓN ---
-                if (!permitido) {
-                    btn.setEnabled(false); // Desactivar clic
-                    btn.setBackground(Color.LIGHT_GRAY); // Poner gris
-                    btn.setToolTipText("Tu boleto " + cabinaPermitida + " no permite este asiento.");
-                } else {
-                    btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-                    btn.addActionListener(e -> seleccionarAsiento(btn, numeroAsiento, precio));
-                }
-                
                 pnlAsientos.add(btn);
             }
         }
-        
-        pnlAsientos.revalidate();
-        pnlAsientos.repaint();
+        pnlAsientos.revalidate(); pnlAsientos.repaint();
     }
 
     private void seleccionarAsiento(JButton btn, String numero, double precio) {
@@ -508,79 +457,152 @@ public class VentanaSeleccionAsientos extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnConfirmarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnConfirmarActionPerformed
-        // 1. Validación de seguridad
-        if(misAsientos.size() < asientosRequeridos) { JOptionPane.showMessageDialog(this, "Faltan elegir asientos."); return; }
+// 1. Validación
+        if(misAsientos.size() < asientosRequeridos) { 
+            JOptionPane.showMessageDialog(this, "Faltan elegir asientos."); 
+            return; 
+        }
         
-        // Recalcular total exacto
+        // 2. Cálculos finales
         double descA=new Adulto().getDescuento(), descN=new Nino().getDescuento(), descM=new AdultoMayor().getDescuento(), descB=new Bebe().getDescuento();
         double totalVuelo = (cantAdultos * precioBaseUnitario * (1-descA)) + (cantNinos * precioBaseUnitario * (1-descN)) + (cantMayores * precioBaseUnitario * (1-descM)) + (cantBebes * precioBaseUnitario * (1-descB));
         double totalEsteTramo = totalVuelo + costoAsientosTotal;
         
-        String info = "Vuelo " + vueloActual.getCodigo() + " (" + origen + "-" + destino + ") Asientos: " + misAsientos;
-        if (cantBebes > 0) info += " + " + cantBebes + " Bebé(s) en regazo";
+        // 3. Construcción de Información para Resumen
+        
+        // A. Parte del Vuelo actual y sus Asientos
+        String infoVueloYAsientos = "Vuelo " + vueloActual.getCodigo() + " (" + origen + "-" + destino + ") Asientos: " + misAsientos;
+        if (cantBebes > 0) infoVueloYAsientos += " + " + cantBebes + " Bebé(s) en regazo";
+
+        // B. Parte de la Tarifa y Fecha (Recuperada de la ventana anterior)
+        String baseInfo = (esTramoIda && esViajeRedondo) ? infoIdaPrev : infoVueltaActual;
+        
+        // C. Info Completa Unificada
+        String infoEsteTramoCompleta = baseInfo + " | " + infoVueloYAsientos;
+
+        // ====================================================================
+        // LÓGICA DE NAVEGACIÓN
+        // ====================================================================
 
         // --- CAMINO A: IR A LA VUELTA ---
         if (esViajeRedondo && esTramoIda) {
             this.setVisible(false);
             VentanaVuelosVuelta vVuelta = new VentanaVuelosVuelta();
             
-            // Unimos: (Tarifa Ida) + | + (Vuelo Ida)
-            // Usamos la variable 'info' que ya definiste arriba
-            String infoIdaCompleta = infoIdaPrev + " | " + info; 
-            
-            vVuelta.recibirDatos(controlador, destino, origen, fechaVueltaGuardada, 
-                                 cantAdultos, cantNinos, cantBebes, cantMayores, 
-                                 infoIdaCompleta, totalEsteTramo, cabinaPermitida);
+            vVuelta.recibirDatos(
+                controlador, destino, origen, fechaVueltaGuardada, 
+                cantAdultos, cantNinos, cantBebes, cantMayores, 
+                infoEsteTramoCompleta, // Pasamos la info de IDA completa
+                totalEsteTramo, 
+                cabinaPermitida
+            );
             vVuelta.setVisible(true);
-        }
-        // --- CAMINO B: FINALIZAR Y GUARDAR ---
+        } 
+        
+        // --- CAMINO B: FINALIZAR Y GUARDAR TODO ---
         else {
             this.setVisible(false);
             
+            // 1. Crear Reserva
             TipoViaje tipo = esViajeRedondo ? TipoViaje.IDA_Y_VUELTA : TipoViaje.SOLO_IDA;
             Reserva reservaFinal = new Reserva("RES-" + System.currentTimeMillis(), tipo);
-            
-            // 1. AGREGAR PASAJEROS CON ASIENTO (Adultos, Niños, Mayores)
-            Pasajero paxDummy = new Pasajero("Pasajero", "123", "x", new Adulto());
-            
+            Pasajero paxDummy = new Pasajero("Cliente", "999", "x", new Adulto());
+
+            // 2. Agregar detalles de ESTE vuelo (Vuelta o Ida única)
             for (String asientoCod : misAsientos) {
                  Asiento aObj = new Asiento(asientoCod, 1, cabinaPermitida, precioBaseUnitario);
-                 // Detalle normal con asiento
+                 aObj.ocuparAsiento(); // Forzar ocupación en memoria
                  DetalleReserva det = new DetalleReserva(vueloActual, paxDummy, aObj, new vuelosfis.modelo.Economy(), true);
                  reservaFinal.agregarDetalle(det);
             }
-            
-            // 2. AGREGAR BEBÉS (SIN ASIENTO)
-            // Aquí es donde tu clase DetalleReserva hace magia al recibir NULL
             if (cantBebes > 0) {
-                Pasajero paxBebe = new Pasajero("Bebé", "000", "x", new Bebe()); // Usamos clase Bebe para el descuento
+                Pasajero paxBebe = new Pasajero("Bebé", "000", "x", new Bebe());
                 for (int i = 0; i < cantBebes; i++) {
-                    // Pasamos null en el asiento. Tu clase DetalleReserva calculará el precio base - descuento
-                    DetalleReserva detBebe = new DetalleReserva(vueloActual, paxBebe, null, new vuelosfis.modelo.Economy(), false);
-                    reservaFinal.agregarDetalle(detBebe);
+                    reservaFinal.agregarDetalle(new DetalleReserva(vueloActual, paxBebe, null, new vuelosfis.modelo.Economy(), false));
                 }
+            }
+
+            // 3. Variables para el Resumen Visual
+            String textoFinalIda = "";
+            String textoFinalVuelta = "";
+            double granTotal = totalEsteTramo;
+
+            if (esViajeRedondo) {
+                granTotal += precioIdaPrevTotal;
+                textoFinalIda = infoIdaPrev; 
+                textoFinalVuelta = infoEsteTramoCompleta;
+                
+                // --- 4. RECONSTRUCCIÓN CRÍTICA DE LA IDA PARA BASE DE DATOS ---
+                try {
+                    String codVueloIda = "";
+                    ArrayList<String> asientosIda = new ArrayList<>();
+                    
+                    // a. Buscar Código de Vuelo en el texto de la Ida
+                    int idxVuelo = infoIdaPrev.indexOf("Vuelo ");
+                    if (idxVuelo != -1) {
+                        int idxFin = infoIdaPrev.indexOf("|", idxVuelo);
+                        if (idxFin == -1) idxFin = infoIdaPrev.length();
+                        String sucio = infoIdaPrev.substring(idxVuelo + 6, idxFin).trim();
+                        if (sucio.contains("(")) codVueloIda = sucio.substring(0, sucio.indexOf("(")).trim();
+                        else codVueloIda = sucio;
+                    }
+
+                    // b. Buscar Asientos en el texto: "Asientos: [1A, 2B]"
+                    int idxAsientos = infoIdaPrev.indexOf("Asientos: ");
+                    if (idxAsientos != -1) {
+                        int idxAbre = infoIdaPrev.indexOf("[", idxAsientos);
+                        int idxCierra = infoIdaPrev.indexOf("]", idxAbre);
+                        if (idxAbre != -1 && idxCierra != -1) {
+                            String contenido = infoIdaPrev.substring(idxAbre + 1, idxCierra);
+                            String[] parts = contenido.split(",");
+                            for (String s : parts) if (!s.trim().isEmpty()) asientosIda.add(s.trim());
+                        }
+                    }
+
+                    // c. Buscar Objeto Vuelo y Agregar a Reserva
+                    vuelosfis.modelo.Vuelo vueloIda = null;
+                    if(controlador != null && !codVueloIda.isEmpty()) {
+                        for (vuelosfis.modelo.Vuelo v : controlador.getControladorReserva().getCatalogoVuelos()) {
+                            if (v.getCodigo().equalsIgnoreCase(codVueloIda)) { vueloIda = v; break; }
+                        }
+                    }
+
+                    if (vueloIda != null && !asientosIda.isEmpty()) {
+                        for (String cod : asientosIda) {
+                            vuelosfis.modelo.Asiento aIda = new vuelosfis.modelo.Asiento(cod, 1, "Economy", 0.0);
+                            aIda.ocuparAsiento(); // Marcar ocupado para que se guarde como X
+                            reservaFinal.agregarDetalle(new DetalleReserva(vueloIda, paxDummy, aIda, new vuelosfis.modelo.Economy(), true));
+                        }
+                        System.out.println(" IDA Reconstruida con éxito en BD.");
+                    }
+                } catch (Exception e) { 
+                    System.out.println("Error reconstruyendo Ida: " + e.getMessage()); 
+                }
+                // -----------------------------------------------------------------
+
+            } else {
+                textoFinalIda = infoEsteTramoCompleta; // Solo Ida
             }
             
             // 3. Guardar
             if (controlador != null) controlador.getControladorReserva().finalizarReserva(reservaFinal);
 
-            // 4. Mostrar Resumen
-            VentanaResumen vRes = new VentanaResumen();
-            vRes.setControlador(controlador);
-            vRes.setReserva(reservaFinal); 
+            // 5. GUARDAR EN ARCHIVO
+            if (controlador != null) {
+                controlador.getControladorReserva().finalizarReserva(reservaFinal);
+            }
+
+            // 6. MOSTRAR RESUMEN
+            VentanaResumen vResumen = new VentanaResumen();
+            vResumen.setControlador(this.controlador);
+            vResumen.setReserva(reservaFinal); 
 
             if (esViajeRedondo) {
-                // --- AQUÍ ESTÁ EL ARREGLO DE LA VUELTA ---
-                // Unimos (Tarifa Vuelta) + | + (Vuelo Vuelta)
-                String infoVueltaCompleta = infoVueltaActual + " | " + info;
-                
-                vRes.mostrarResumen(infoIdaPrev, precioIdaPrevTotal, infoVueltaCompleta, totalEsteTramo);
+                vResumen.mostrarResumen(textoFinalIda, precioIdaPrevTotal, textoFinalVuelta, totalEsteTramo);
             } else {
-                // Caso Solo Ida: Unimos (Tarifa Ida) + | + (Vuelo Ida)
-                String infoIdaCompleta = infoIdaPrev + " | " + info;
-                vRes.mostrarResumen(infoIdaCompleta, totalEsteTramo, "", 0.0);
+                vResumen.mostrarResumen(textoFinalIda, totalEsteTramo, "", 0.0);
             }
-            vRes.setVisible(true);
+            vResumen.setVisible(true);
         }
     }//GEN-LAST:event_btnConfirmarActionPerformed
 
