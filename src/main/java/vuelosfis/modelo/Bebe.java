@@ -18,6 +18,6 @@ public class Bebe implements TipoPasajero{
     
     @Override
     public double getDescuento(){
-        return 0.0;
+        return 0.90;
     }
 }

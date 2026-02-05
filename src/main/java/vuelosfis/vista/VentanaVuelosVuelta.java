@@ -19,6 +19,7 @@ public class VentanaVuelosVuelta extends javax.swing.JFrame {
     private String destino;
     private String fechaVuelta;
     private int pasajeros;
+    private int nAdultos, nNinos, nBebes, nMayores;
     private String infoIdaGuardada;
     private double precioIdaGuardado;
     private String cabinaIdaGuardada;
@@ -30,16 +31,12 @@ public class VentanaVuelosVuelta extends javax.swing.JFrame {
     }
     
 // --- MÉTODO PARA RECIBIR DATOS ---
-    public void recibirDatos(vuelosfis.controlador.ControladorVuelo ctrl,String origen, String destino, String fechaVuelta, int pasajeros,
+    public void recibirDatos(vuelosfis.controlador.ControladorVuelo ctrl, String origen, String destino, String fechaVuelta, 
+                             int a, int n, int b, int m, // <--- 4 Recibidos
                              String infoIda, double precioIda, String cabina) {
-        this.controlador = ctrl;
-        this.origen = origen;
-        this.destino = destino;
-        this.fechaVuelta = fechaVuelta;
-        this.pasajeros = pasajeros;
-        this.infoIdaGuardada = infoIda;
-        this.precioIdaGuardado = precioIda;
-        this.cabinaIdaGuardada = cabina;
+        this.controlador = ctrl; this.origen = origen; this.destino = destino; this.fechaVuelta = fechaVuelta;
+        this.nAdultos = a; this.nNinos = n; this.nBebes = b; this.nMayores = m;
+        this.infoIdaGuardada = infoIda; this.precioIdaGuardado = precioIda; this.cabinaIdaGuardada = cabina;
 
         // Actualizamos los textos
         lblTitulo.setText("Vuelos de regreso: " + origen + " - " + destino);
@@ -84,27 +81,7 @@ public class VentanaVuelosVuelta extends javax.swing.JFrame {
         }
         tblVuelos.setModel(modelo);
     }
-    
-    // --- CONFIGURACIÓN DE TABLA ---
-    private void configurarTablaSinDatos() {
-    String[] columnas = {
-            "Salida", "Llegada", "Duración", "Tipo", "Precio"
-        };
 
-        // Modelo que impide editar las celdas
-        javax.swing.table.DefaultTableModel modelo = new javax.swing.table.DefaultTableModel(columnas, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-        
-        tblVuelos.setModel(modelo);
-
-        // Bloqueos visuales
-        tblVuelos.getTableHeader().setResizingAllowed(false);
-        tblVuelos.getTableHeader().setReorderingAllowed(false);
-    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -212,21 +189,9 @@ public class VentanaVuelosVuelta extends javax.swing.JFrame {
         VentanaSeleccionTarifa vTarifas = new VentanaSeleccionTarifa();
 
         // 2. Pasamos los datos
-        vTarifas.inicializar(
-                this.controlador,   // Cerebro
-                vueloRetorno,       // Vuelo Objeto
-                origen, 
-                destino, 
-                fechaVuelta, 
-                
-                String.valueOf(vueloRetorno.getPrecioBase()), 
-                pasajeros, 
-                true,  // esRedondo
-                false, // esIda
-                null, 
-                cabinaIdaGuardada
-        );
-        
+        vTarifas.inicializar(controlador, vueloRetorno, origen, destino, fechaVuelta, String.valueOf(vueloRetorno.getPrecioBase()), 
+                             nAdultos, nNinos, nBebes, nMayores, // <--- AQUÍ
+                             true, false, null, cabinaIdaGuardada);
         vTarifas.setDatosPrevios(infoIdaGuardada, precioIdaGuardado, infoVuelta);
         vTarifas.setVisible(true);
     }//GEN-LAST:event_btnFinalizarActionPerformed

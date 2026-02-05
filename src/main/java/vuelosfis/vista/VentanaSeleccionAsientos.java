@@ -12,6 +12,15 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingConstants;
+import vuelosfis.modelo.Adulto;
+import vuelosfis.modelo.AdultoMayor;
+import vuelosfis.modelo.Nino;
+import vuelosfis.modelo.Bebe;
+import vuelosfis.modelo.Reserva;
+import vuelosfis.modelo.DetalleReserva;
+import vuelosfis.modelo.Pasajero;
+import vuelosfis.modelo.Asiento;
+import vuelosfis.enums.TipoViaje;
 
 public class VentanaSeleccionAsientos extends javax.swing.JFrame {
     
@@ -21,7 +30,11 @@ public class VentanaSeleccionAsientos extends javax.swing.JFrame {
     // --- VARIABLES DE DATOS ---
     private boolean esViajeRedondo, esTramoIda;
     private String origen, destino, fechaVueltaGuardada, cabinaPermitida;
-    private int pasajerosTotal, pasajeroActual = 1;
+    private int cantAdultos, cantNinos, cantBebes, cantMayores;
+    private int pasajerosTotal;
+    //Cuántos asientos físicos necesitamos (Total - Bebés)
+    private int asientosRequeridos;
+    private int pasajeroActual = 1;
     private double precioBaseUnitario, costoAsientosTotal = 0.0;
     
     // Mochila
@@ -32,15 +45,16 @@ public class VentanaSeleccionAsientos extends javax.swing.JFrame {
 
     public VentanaSeleccionAsientos() {
         initComponents();
-        this.setSize(800, 479);
+        this.setSize(831, 483);
         this.setLocationRelativeTo(null);
+        lblTitulo.setHorizontalAlignment(SwingConstants.CENTER);
     }
 
     // --- CARGAR DATOS ---
     public void cargarDatos(vuelosfis.controlador.ControladorVuelo ctrl, 
-                            vuelosfis.modelo.Vuelo vuelo, // <--- NUEVO
-                            String origen, String destino, int pasajeros, String cabina,
-                            boolean esRedondo, boolean esIda, String fechaVuelta,
+                            vuelosfis.modelo.Vuelo vuelo, String origen, String destino, 
+                            int a, int n, int b, int m, // <--- 4 ENTEROS
+                            String cabina, boolean esRedondo, boolean esIda, String fechaVuelta,
                             double precioUnitarioActual, 
                             String infoIdaPrev, double precioIdaPrevTotal, String infoVueltaActual) {
         
@@ -48,64 +62,60 @@ public class VentanaSeleccionAsientos extends javax.swing.JFrame {
         this.vueloActual = vuelo;
         this.origen = origen;
         this.destino = destino;
-        this.pasajerosTotal = pasajeros;
+        
+        this.cantAdultos = a;
+        this.cantNinos = n;
+        this.cantBebes = b;
+        this.cantMayores = m;
+        this.pasajerosTotal = a + n + b + m;
+        
+        this.asientosRequeridos = pasajerosTotal - cantBebes;
+        
         this.cabinaPermitida = cabina;
         this.esViajeRedondo = esRedondo;
         this.esTramoIda = esIda;
         this.fechaVueltaGuardada = fechaVuelta;
         this.precioBaseUnitario = precioUnitarioActual;
-        
         this.infoIdaPrev = infoIdaPrev;
         this.precioIdaPrevTotal = precioIdaPrevTotal;
         this.infoVueltaActual = infoVueltaActual;
         
         // Actualizar Textos Visuales
-        lblTitulo.setText("Pasajero " + pasajeroActual + " de " + pasajerosTotal);
+        lblTitulo.setText("<html><center>Eligiendo asiento<br>" + pasajeroActual + " de " + asientosRequeridos + "</center></html>");
         actualizarPrecio();
         
-        // Generar los botones DENTRO del panel que creaste en Design
+        // Generar los botones DENTRO del panel en Design
         dibujarAsientosEnPanel();
     }
 
     private void actualizarPrecio() {
-        // --- 1. CÁLCULOS ---
-        double totalVueloActual = precioBaseUnitario * pasajerosTotal;
-        double totalAsientos = costoAsientosTotal;
-        // El gran total suma: Lo que traías de antes (si es vuelta) + Vuelo Actual + Asientos
-        double granTotal = precioIdaPrevTotal + totalVueloActual + totalAsientos;
+        // Obtenemos los descuentos desde las clases
+        double descA = new Adulto().getDescuento();      // 0.0
+        double descN = new Nino().getDescuento();        // 0.30
+        double descM = new AdultoMayor().getDescuento(); // 0.30
+        double descB = new Bebe().getDescuento();        // 0.90
 
-        // --- 2. CONSTRUIR EL TEXTO DEL DETALLE ---
+        // Aplicamos la fórmula: Cantidad * Precio * (1 - Descuento)
+        double totalA = cantAdultos * (precioBaseUnitario * (1 - descA));
+        double totalN = cantNinos   * (precioBaseUnitario * (1 - descN));
+        double totalM = cantMayores * (precioBaseUnitario * (1 - descM));
+        double totalB = cantBebes   * (precioBaseUnitario * (1 - descB));
+        
+        double totalVueloActual = totalA + totalN + totalM + totalB;
+        double granTotal = precioIdaPrevTotal + totalVueloActual + costoAsientosTotal;
+
+        // Texto
         StringBuilder sb = new StringBuilder();
+        if (esViajeRedondo && !esTramoIda) sb.append("IDA (Pagado): $ ").append(String.format("%.2f", precioIdaPrevTotal)).append("\n");
+        sb.append("VUELO ACTUAL (Base $").append(String.format("%.2f", precioBaseUnitario)).append("):\n");
         
-        // A) PRECIOS DE LOS VUELOS
-        if (esViajeRedondo && !esTramoIda) {
-            // -- CASO: ESTAMOS EN LA VUELTA --
-            // Mostramos lo que costó la Ida (Total acumulado anterior)
-            sb.append(" Vuelo IDA (Total): $ ").append(String.format("%.2f", precioIdaPrevTotal)).append("\n");
-            // Mostramos el costo de este vuelo de vuelta
-            sb.append(" Vuelo VUELTA ($").append(String.format("%.2f", precioBaseUnitario))
-              .append(" por persona): $ ").append(String.format("%.2f", totalVueloActual)).append("\n");
-        } else {
-            // -- CASO: SOLO IDA O PRIMER TRAMO --
-            sb.append(" Vuelo IDA ($").append(String.format("%.2f", precioBaseUnitario))
-              .append(" por persona): $ ").append(String.format("%.2f", totalVueloActual)).append("\n");
-        }
+        if(cantAdultos>0) sb.append(" - ").append(cantAdultos).append(" Adulto(s): $").append(String.format("%.2f", totalA)).append("\n");
+        if(cantNinos>0)   sb.append(" - ").append(cantNinos).append(" Niño(s) (-30%): $").append(String.format("%.2f", totalN)).append("\n");
+        if(cantMayores>0) sb.append(" - ").append(cantMayores).append(" 3ra Edad (-30%): $").append(String.format("%.2f", totalM)).append("\n");
+        if(cantBebes>0)   sb.append(" - ").append(cantBebes).append(" Bebé(s) (-90%): $").append(String.format("%.2f", totalB)).append("\n");
         
-        sb.append(" ----------------------------\n");
+        sb.append("Asientos: $").append(String.format("%.2f", costoAsientosTotal));
         
-        // B) DETALLE DE ASIENTOS
-        if (misAsientos.isEmpty()) {
-            sb.append(" (Asientos no seleccionados)\n");
-        } else {
-            for (String asiento : misAsientos) {
-                sb.append(" + Asiento ").append(asiento).append(" .......... [OK]\n");
-            }
-        }
-        
-        sb.append(" ----------------------------\n");
-        sb.append(" Costo Asientos: +$ ").append(String.format("%.2f", totalAsientos));
-        
-        // --- 3. MOSTRAR EN PANTALLA ---
         txtDetalle.setText(sb.toString()); 
         lblTotal.setText("Total: $" + String.format("%.2f", granTotal));
     }
@@ -226,9 +236,9 @@ public class VentanaSeleccionAsientos extends javax.swing.JFrame {
     private void seleccionarAsiento(JButton btn, String numero, double precio) {
         
         // --- FRENO: SI YA ESTÁ LLENO, NO DEJA CLICKAR ---
-        if (misAsientos.size() >= pasajerosTotal) {
-            JOptionPane.showMessageDialog(this, "Ya completaste los " + pasajerosTotal + " pasajeros.\nNo puedes seleccionar más.");
-            return; // Se sale del método, no hace nada más
+        if (misAsientos.size() >= asientosRequeridos) { 
+            JOptionPane.showMessageDialog(this, "Ya seleccionaste los asientos necesarios.\n(Los bebés van en regazo)."); 
+            return;
         }
         // --------------------------------------------------
 
@@ -251,7 +261,9 @@ public class VentanaSeleccionAsientos extends javax.swing.JFrame {
                 lblTitulo.setText("<html><font color='green'>¡COMPLETO!</font></html>");
                 btnConfirmar.setEnabled(true); 
             } else {
-                lblTitulo.setText("Pasajero " + pasajeroActual + " de " + pasajerosTotal);
+                lblTitulo.setText("<html><center>Eligiendo asiento<br>" + 
+                        pasajeroActual + " de " + asientosRequeridos + "</center></html>");
+                
             }
         }
     }
@@ -448,27 +460,26 @@ public class VentanaSeleccionAsientos extends javax.swing.JFrame {
         jPanel6.setLayout(jPanel6Layout);
         jPanel6Layout.setHorizontalGroup(
             jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel6Layout.createSequentialGroup()
+            .addComponent(btnConfirmar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel6Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 224, Short.MAX_VALUE)
                     .addComponent(jSeparator1)
                     .addComponent(jSeparator2)
                     .addGroup(jPanel6Layout.createSequentialGroup()
-                        .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(lblTitulo, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 195, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel5, javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(btnConfirmar, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 230, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(lblTotal, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addComponent(jLabel5)
+                        .addGap(0, 132, Short.MAX_VALUE))
+                    .addComponent(lblTotal, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(lblTitulo, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jPanel6Layout.setVerticalGroup(
             jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel6Layout.createSequentialGroup()
-                .addGap(23, 23, 23)
-                .addComponent(lblTitulo)
-                .addGap(37, 37, 37)
+                .addContainerGap()
+                .addComponent(lblTitulo, javax.swing.GroupLayout.PREFERRED_SIZE, 63, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel5)
@@ -479,8 +490,8 @@ public class VentanaSeleccionAsientos extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jSeparator2, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(btnConfirmar, javax.swing.GroupLayout.DEFAULT_SIZE, 62, Short.MAX_VALUE)
-                .addGap(31, 31, 31))
+                .addComponent(btnConfirmar, javax.swing.GroupLayout.PREFERRED_SIZE, 59, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(34, Short.MAX_VALUE))
         );
 
         getContentPane().add(jPanel6, java.awt.BorderLayout.LINE_END);
@@ -498,97 +509,78 @@ public class VentanaSeleccionAsientos extends javax.swing.JFrame {
 
     private void btnConfirmarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnConfirmarActionPerformed
         // 1. Validación de seguridad
-        if (misAsientos.size() < pasajerosTotal) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Selecciona todos los asientos.");
-            return;
-        }
+        if(misAsientos.size() < asientosRequeridos) { JOptionPane.showMessageDialog(this, "Faltan elegir asientos."); return; }
+        
+        // Recalcular total exacto
+        double descA=new Adulto().getDescuento(), descN=new Nino().getDescuento(), descM=new AdultoMayor().getDescuento(), descB=new Bebe().getDescuento();
+        double totalVuelo = (cantAdultos * precioBaseUnitario * (1-descA)) + (cantNinos * precioBaseUnitario * (1-descN)) + (cantMayores * precioBaseUnitario * (1-descM)) + (cantBebes * precioBaseUnitario * (1-descB));
+        double totalEsteTramo = totalVuelo + costoAsientosTotal;
+        
+        String info = "Vuelo " + vueloActual.getCodigo() + " (" + origen + "-" + destino + ") Asientos: " + misAsientos;
+        if (cantBebes > 0) info += " + " + cantBebes + " Bebé(s) en regazo";
 
-        // 2. PREPARAR DATOS DEL TRAMO ACTUAL
-        double totalEsteTramo = (precioBaseUnitario * pasajerosTotal) + costoAsientosTotal;
-        String infoEsteTramo = "Vuelo " + vueloActual.getCodigo() + " (" + origen + "-" + destino + ") Asientos: " + misAsientos;
-
-        // CAMINO A: IDA Y VUELTA (ESTAMOS EN LA IDA) -> IR A LA VUELTA
+        // --- CAMINO A: IR A LA VUELTA ---
         if (esViajeRedondo && esTramoIda) {
             this.setVisible(false);
-            vuelosfis.vista.VentanaVuelosVuelta vVuelta = new vuelosfis.vista.VentanaVuelosVuelta();
+            VentanaVuelosVuelta vVuelta = new VentanaVuelosVuelta();
             
-            // Pasamos la estafeta
-            vVuelta.recibirDatos(
-                this.controlador,       
-                this.destino, this.origen, this.fechaVueltaGuardada, this.pasajerosTotal,
-                infoEsteTramo, totalEsteTramo, this.cabinaPermitida
-            );
+            // Unimos: (Tarifa Ida) + | + (Vuelo Ida)
+            // Usamos la variable 'info' que ya definiste arriba
+            String infoIdaCompleta = infoIdaPrev + " | " + info; 
+            
+            vVuelta.recibirDatos(controlador, destino, origen, fechaVueltaGuardada, 
+                                 cantAdultos, cantNinos, cantBebes, cantMayores, 
+                                 infoIdaCompleta, totalEsteTramo, cabinaPermitida);
             vVuelta.setVisible(true);
-        } 
-        
-        // CAMINO B: FIN DEL VIAJE (SOLO IDA O ESTAMOS EN LA VUELTA) -> GUARDAR
+        }
+        // --- CAMINO B: FINALIZAR Y GUARDAR ---
         else {
             this.setVisible(false);
-
-            // 1. CREAMOS LA RESERVA FINAL
-            vuelosfis.enums.TipoViaje tipo = esViajeRedondo ? vuelosfis.enums.TipoViaje.IDA_Y_VUELTA : vuelosfis.enums.TipoViaje.SOLO_IDA;
-            vuelosfis.modelo.Reserva reservaFinal = new vuelosfis.modelo.Reserva("RES-" + System.currentTimeMillis(), tipo);
-            vuelosfis.modelo.Pasajero paxDummy = new vuelosfis.modelo.Pasajero("Cliente", "999", "x", new vuelosfis.modelo.Adulto());
-
-            // 2. AGREGAMOS LOS ASIENTOS DE *ESTE* VUELO (LO QUE ACABAS DE ELEGIR)
+            
+            TipoViaje tipo = esViajeRedondo ? TipoViaje.IDA_Y_VUELTA : TipoViaje.SOLO_IDA;
+            Reserva reservaFinal = new Reserva("RES-" + System.currentTimeMillis(), tipo);
+            
+            // 1. AGREGAR PASAJEROS CON ASIENTO (Adultos, Niños, Mayores)
+            Pasajero paxDummy = new Pasajero("Pasajero", "123", "x", new Adulto());
+            
             for (String asientoCod : misAsientos) {
-                 vuelosfis.modelo.Asiento aObj = new vuelosfis.modelo.Asiento(asientoCod, 1, cabinaPermitida, precioBaseUnitario);
-                 vuelosfis.modelo.DetalleReserva det = new vuelosfis.modelo.DetalleReserva(vueloActual, paxDummy, aObj, new vuelosfis.modelo.Economy(), true);
+                 Asiento aObj = new Asiento(asientoCod, 1, cabinaPermitida, precioBaseUnitario);
+                 // Detalle normal con asiento
+                 DetalleReserva det = new DetalleReserva(vueloActual, paxDummy, aObj, new vuelosfis.modelo.Economy(), true);
                  reservaFinal.agregarDetalle(det);
             }
-
-        // 3. RECONSTRUCCIÓN DE LA IDA (Solo si es viaje redondo y estamos en la vuelta)
-            double granTotal = totalEsteTramo;
-            String textoFinal = infoEsteTramo;
-
-            if (esViajeRedondo && !esTramoIda) {
-                granTotal += precioIdaPrevTotal;
-                textoFinal = infoIdaPrev + "\n" + infoEsteTramo;
-                
-                try {
-                    // Extraer datos de la cadena guardada en el tramo anterior
-                    String codVueloIda = infoIdaPrev.split(" ")[1].trim();
-                    String asientosStr = infoIdaPrev.substring(infoIdaPrev.indexOf("[") + 1, infoIdaPrev.indexOf("]"));
-                    String[] arrayAsientos = asientosStr.split(",");
-
-                    // Buscar el vuelo de ida en el catálogo
-                    vuelosfis.modelo.Vuelo vueloIda = null;
-                    for (vuelosfis.modelo.Vuelo v : controlador.getControladorReserva().getCatalogoVuelos()) {
-                        if (v.getCodigo().equalsIgnoreCase(codVueloIda)) {
-                            vueloIda = v;
-                            break;
-                        }
-                    }
-
-                    // Agregar detalles de ida a la reserva final 
-                    if (vueloIda != null) {
-                        for (String as : arrayAsientos) {
-                            vuelosfis.modelo.Asiento aObjIda = new vuelosfis.modelo.Asiento(as.trim(), 1, "Economy", 0.0);
-                            reservaFinal.agregarDetalle(new vuelosfis.modelo.DetalleReserva(vueloIda, paxDummy, aObjIda, new vuelosfis.modelo.Economy(), true));
-                        }
-                    }
-                } catch (Exception e) {
-                    System.out.println(" No se pudo reconstruir la reserva de Ida automáticamante: " + e.getMessage());
+            
+            // 2. AGREGAR BEBÉS (SIN ASIENTO)
+            // Aquí es donde tu clase DetalleReserva hace magia al recibir NULL
+            if (cantBebes > 0) {
+                Pasajero paxBebe = new Pasajero("Bebé", "000", "x", new Bebe()); // Usamos clase Bebe para el descuento
+                for (int i = 0; i < cantBebes; i++) {
+                    // Pasamos null en el asiento. Tu clase DetalleReserva calculará el precio base - descuento
+                    DetalleReserva detBebe = new DetalleReserva(vueloActual, paxBebe, null, new vuelosfis.modelo.Economy(), false);
+                    reservaFinal.agregarDetalle(detBebe);
                 }
             }
-
-        // 4. GUARDADO ÚNICO
-            controlador.getControladorReserva().finalizarReserva(reservaFinal);
-
-            // 5. MOSTRAR RESUMEN
-            vuelosfis.vista.VentanaResumen vResumen = new vuelosfis.vista.VentanaResumen();
-            vResumen.setControlador(this.controlador);
-            vResumen.setReserva(reservaFinal);
             
+            // 3. Guardar
+            if (controlador != null) controlador.getControladorReserva().finalizarReserva(reservaFinal);
+
+            // 4. Mostrar Resumen
+            VentanaResumen vRes = new VentanaResumen();
+            vRes.setControlador(controlador);
+            vRes.setReserva(reservaFinal); 
+
             if (esViajeRedondo) {
-                // Enviamos Ida y Vuelta por separado
-                vResumen.mostrarResumen(infoIdaPrev, precioIdaPrevTotal, infoEsteTramo, totalEsteTramo);
+                // --- AQUÍ ESTÁ EL ARREGLO DE LA VUELTA ---
+                // Unimos (Tarifa Vuelta) + | + (Vuelo Vuelta)
+                String infoVueltaCompleta = infoVueltaActual + " | " + info;
+                
+                vRes.mostrarResumen(infoIdaPrev, precioIdaPrevTotal, infoVueltaCompleta, totalEsteTramo);
             } else {
-                // Solo Ida
-                vResumen.mostrarResumen(infoEsteTramo, totalEsteTramo, "", 0.0);
+                // Caso Solo Ida: Unimos (Tarifa Ida) + | + (Vuelo Ida)
+                String infoIdaCompleta = infoIdaPrev + " | " + info;
+                vRes.mostrarResumen(infoIdaCompleta, totalEsteTramo, "", 0.0);
             }
-        
-            vResumen.setVisible(true);
+            vRes.setVisible(true);
         }
     }//GEN-LAST:event_btnConfirmarActionPerformed
 

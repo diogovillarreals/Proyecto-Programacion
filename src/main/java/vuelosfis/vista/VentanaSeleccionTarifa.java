@@ -16,6 +16,8 @@ public class VentanaSeleccionTarifa extends javax.swing.JFrame {
     // Variable para recordar la cabina original
     private String cabinaOriginal; 
 
+    private int nAdultos, nNinos, nBebes, nMayores;
+    
     private String infoIdaPrev;      
     private double precioIdaPrev = 0.0;
     private String infoVueltaActual;
@@ -29,13 +31,19 @@ public class VentanaSeleccionTarifa extends javax.swing.JFrame {
      * CONFIGURACIÓN INICIAL Recibe el precio base y calcula las 3 opciones
      * originales: 1. Básica 2. Con Maletas 3. Con Prioridad
      */
-    public void inicializar(vuelosfis.controlador.ControladorVuelo ctrl,vuelosfis.modelo.Vuelo vuelo,String origen, String destino, String fecha, String precioBaseStr,
-            int pasajeros, boolean esRedondo, boolean esIda, String fechaVuelta, String cabina) {
+    public void inicializar(vuelosfis.controlador.ControladorVuelo ctrl, vuelosfis.modelo.Vuelo vuelo, 
+            String origen, String destino, String fecha, String precioBaseStr,
+            int a, int n, int b, int m, boolean esRedondo, boolean esIda, 
+            String fechaVuelta, String cabina) {
         
         this.controlador = ctrl;
         this.vueloActual = vuelo;
         this.origen = origen;
         this.destino = destino;
+        this.nAdultos = a;
+        this.nNinos = n;
+        this.nBebes = b;
+        this.nMayores = m;
         this.pasajeros = pasajeros;
         this.esViajeRedondo = esRedondo;
         this.esTramoIda = esIda;
@@ -113,20 +121,24 @@ public class VentanaSeleccionTarifa extends javax.swing.JFrame {
 
         // Enviar datos
         if (esViajeRedondo && esTramoIda) {
-            // FASE 1: IDA
             String infoActual = "Ida: " + origen + " - " + destino + " | Tarifa: " + tarifaNombre;
-            vAsientos.cargarDatos(this.controlador,this.vueloActual,origen, destino, pasajeros, cabinaAsignada, esViajeRedondo, true, fechaVueltaGuardada,
-                                  precioActual, infoActual, 0.0, ""); 
+            vAsientos.cargarDatos(controlador, vueloActual, origen, destino, 
+                  nAdultos, nNinos, nBebes, nMayores, // <--- AQUÍ
+                  cabinaAsignada, esViajeRedondo, true, fechaVueltaGuardada,
+                  precioActual, infoActual, 0.0, "");
         } else {
-            // FASE 2: VUELTA O SOLO IDA
-            if (esViajeRedondo) {
+            if (esViajeRedondo) { // Vuelta
                 String infoVuelta = "Vuelta: " + origen + " - " + destino + " | Tarifa: " + tarifaNombre;
-                vAsientos.cargarDatos(this.controlador,this.vueloActual,origen, destino, pasajeros, cabinaAsignada, true, false, null,
-                                      precioActual, infoIdaPrev, precioIdaPrev, infoVuelta);
-            } else {
+                vAsientos.cargarDatos(controlador, vueloActual, origen, destino, 
+                      nAdultos, nNinos, nBebes, nMayores, // <--- AQUÍ
+                      cabinaAsignada, true, false, null,
+                      precioActual, infoIdaPrev, precioIdaPrev, infoVuelta);
+            } else { // Solo Ida
                 String infoActual = "Ida: " + origen + " - " + destino + " | Tarifa: " + tarifaNombre;
-                vAsientos.cargarDatos(this.controlador,this.vueloActual,origen, destino, pasajeros, cabinaAsignada, false, false, null,
-                                      precioActual, infoActual, 0.0, "");
+                vAsientos.cargarDatos(controlador, vueloActual, origen, destino, 
+                      nAdultos, nNinos, nBebes, nMayores, // <--- AQUÍ
+                      cabinaAsignada, false, false, null,
+                      precioActual, infoActual, 0.0, "");
             }
         }
         vAsientos.setVisible(true);
