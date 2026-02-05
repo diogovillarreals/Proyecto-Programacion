@@ -1,0 +1,27 @@
+=================================================
+             VUELOS FIS - FACTURA                
+=================================================
+Fecha de Emisión: 2026-02-04T22:24:20.681015900
+Código Reserva:   RES-1770261859560
+=================================================
+
+DATOS DEL CLIENTE:
+Cliente
+-------------------------------------------------
+
+DETALLES DEL ITINERARIO Y ASIENTOS:
+VUELO DE IDA
+Ida: CUE - GPS | Tarifa: ESTÁNDAR | Vuelo AV3412 (CUE-GPS) Asientos: [6C, 6D] + 2 Bebé(s) en regazo
+Precio: $ 504.00
+
+VUELO DE VUELTA
+Vuelta: GPS - CUE | Tarifa: ESTÁNDAR | Vuelo AV3182 (GPS-CUE) Asientos: [6A, 6B] + 2 Bebé(s) en regazo
+Precio: $ 468.80
+
+
+
+=================================================
+ TOTAL PAGADO:   $ 972.80
+=================================================
+      ¡Gracias por volar con nosotros!           
+=================================================
